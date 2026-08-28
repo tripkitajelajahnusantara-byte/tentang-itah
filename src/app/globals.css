@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #FAF6EE; /* Warm parchment cream from Figma */
+  --foreground: #221A15; /* Deep warm charcoal wood */
+  
+  --primary: #C0482B; /* Terracotta Red / Warm Brick Red */
+  --primary-hover: #A5391E;
+  --secondary: #C68A35; /* Radiant gold / bronze */
+  --secondary-hover: #AA7327;
+  --accent: #C0482B; /* Unified terracotta red for primary accents */
+  --accent-hover: #A5391E;
+  
+  --muted: #7A6F68;
+  --card-bg: #FFFFFF;
+  --card-border: #EBE4DC;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #120F0D; /* Figma dark footer background */
+    --foreground: #EBE4DC;
+    
+    --primary: #D86345;
+    --primary-hover: #F07E62;
+    --secondary: #DB9E45;
+    --secondary-hover: #F2B55E;
+    --accent: #D86345;
+    --accent-hover: #F07E62;
+    
+    --muted: #9E9187;
+    --card-bg: #1A1614;
+    --card-border: #2D2622;
+  }
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-muted: var(--muted);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  
+  --font-sans: 'Outfit', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Outfit', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* Custom styles for animations & transitions */
+.transition-all-custom {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glassmorphism-dark {
+  background: rgba(20, 18, 17, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Card Lift & Warm Shadow Glow */
+.card-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-lift:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 24px -10px rgba(198, 138, 53, 0.15);
+  border-color: rgba(198, 138, 53, 0.3);
+}
+
