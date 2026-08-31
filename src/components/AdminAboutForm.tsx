@@ -24,10 +24,10 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
 
     // Client-side file size validation
     const MIN_SIZE = 10 * 1024; // 10KB
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_SIZE = 500 * 1024; // 500KB
 
     if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
-      setError('Ukuran gambar minimal 10 KB dan maksimal 5 MB');
+      setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
       return;
     }
 
@@ -59,6 +59,11 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (/[<>]/.test(title) || /[<>]/.test(content)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     setSuccess(false);
@@ -72,7 +77,7 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Gagal memperbarui halaman Tentang');
+      setError(err.message || 'Gagal diperbarui');
     } finally {
       setIsSubmitting(false);
     }
@@ -106,27 +111,28 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
         />
       </div>
 
-      {/* Content Text */}
+      {/* Content */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Isi Konten Tentang Itah (Latar Belakang / Visi Misi)</label>
+        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Konten Halaman Tentang</label>
         <textarea
           required
-          rows={12}
+          rows={10}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all resize-none font-sans leading-relaxed"
+          className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all resize-none font-sans leading-relaxed text-xs"
         />
       </div>
 
-      {/* Photo File Upload */}
+      {/* Banner Image Upload */}
       <div className="space-y-2 border-t border-card-border/40 pt-4">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Foto / Ilustrasi Pendukung</label>
+        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Foto Sampul / Banner</label>
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <input
             type="file"
             accept="image/jpeg,image/png,image/jpg"
             onChange={handleFileUpload}
-            className="text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-2xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
+            disabled={isUploading}
+            className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
           />
           {isUploading && <span className="text-2xs text-primary animate-pulse">Mengunggah...</span>}
         </div>

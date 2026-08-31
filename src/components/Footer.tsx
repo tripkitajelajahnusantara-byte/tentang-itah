@@ -112,7 +112,6 @@ export default async function Footer() {
         <div className="border-t border-card-border/10 pt-8 mt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-white/40 font-sans">
           <p>© {currentYear} Tentang Itah. Dibuat dengan bangga untuk pelestarian budaya Kalimantan Tengah.</p>
           <div className="flex gap-4 mt-4 sm:mt-0">
-            <Link href="/admin/dashboard" className="hover:underline">Portal Admin</Link>
             <Link href="/tentang" className="hover:underline">Visi & Misi</Link>
           </div>
         </div>

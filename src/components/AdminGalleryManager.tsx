@@ -35,19 +35,25 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
 
     // Client-side file size validation
     const MIN_SIZE = 10 * 1024; // 10KB
-    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-    const MAX_VIDEO_SIZE = 2 * 1024 * 1024; // 2MB
+    const MAX_IMAGE_SIZE = 500 * 1024; // 500KB
+    const MAX_VIDEO_SIZE = 4 * 1024 * 1024; // 4MB
 
-    if (file.type.startsWith('image/')) {
+    const isImageFile = file.type.startsWith('image/') || /\.(jpg|jpeg|png)$/i.test(file.name);
+    const isVideoFile = file.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(file.name);
+
+    if (isImageFile) {
       if (file.size < MIN_SIZE || file.size > MAX_IMAGE_SIZE) {
-        setError('Ukuran gambar minimal 10 KB dan maksimal 5 MB');
+        setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
+        return;
+      }
+    } else if (isVideoFile) {
+      if (file.size < MIN_SIZE || file.size > MAX_VIDEO_SIZE) {
+        setError('Ukuran video minimal 10 KB dan maksimal 4 MB');
         return;
       }
     } else {
-      if (file.size > MAX_VIDEO_SIZE) {
-        setError('Ukuran video maksimal adalah 2MB');
-        return;
-      }
+      setError('Format berkas tidak didukung. Hanya gambar (JPG, JPEG, PNG) dan video (MP4, WEBM, MOV) yang diperbolehkan');
+      return;
     }
 
     setIsUploading(true);
@@ -77,11 +83,30 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
     }
   };
 
+  const getYouTubeId = (url: string): string | null => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !mediaUrl) {
-      setError('Judul dan file media wajib diisi');
+      setError('Judul dan file/link media wajib diisi');
       return;
+    }
+
+    if (/[<>]/.test(title) || /[<>]/.test(description)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
+    if (type === 'video') {
+      const ytId = getYouTubeId(mediaUrl);
+      if (!ytId) {
+        setError('Tautan video harus berupa link YouTube yang valid (watch?v=... atau youtu.be/...)');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -188,7 +213,10 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Jenis Berkas *</label>
             <select
               value={type}
-              onChange={(e) => setType(e.target.value as any)}
+              onChange={(e) => {
+                setType(e.target.value as any);
+                setMediaUrl(''); // Reset url on type change to avoid cross-upload pollution
+              }}
               className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
             >
               <option value="image">Gambar / Foto</option>
@@ -208,26 +236,47 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
           </div>
 
           <div className="space-y-2 border-t border-card-border/40 pt-4">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Unggah Berkas Media *</label>
-            <input
-              type="file"
-              accept={type === 'image' ? 'image/jpeg,image/png,image/jpg' : 'video/*'}
-              onChange={handleFileUpload}
-              disabled={isUploading || type === 'video'}
-              className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer disabled:opacity-50"
-            />
-            <p className="text-4xs text-muted/70 mt-1">
-              {type === 'image' 
-                ? 'Format: JPG, JPEG, PNG (Maksimal 500 KB)' 
-                : 'Unggah Video dinonaktifkan sesuai kebijakan kapasitas terbaru'}
-            </p>
-            {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah media...</p>}
+            {type === 'image' ? (
+              <>
+                <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Unggah Berkas Gambar *</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/jpg"
+                  onChange={handleFileUpload}
+                  disabled={isUploading}
+                  className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer disabled:opacity-50"
+                />
+                <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
+                {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah media...</p>}
+              </>
+            ) : (
+              <>
+                <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Tautan Video YouTube *</label>
+                <input
+                  type="url"
+                  required
+                  placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+                />
+                <p className="text-4xs text-muted/70 mt-1">Masukkan tautan lengkap video YouTube (watch?v=... atau youtu.be/...)</p>
+              </>
+            )}
+
             {mediaUrl && (
               <div className="flex gap-2 items-center mt-2">
                 {type === 'image' ? (
                   <img src={mediaUrl} alt="Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
                 ) : (
-                  <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white text-3xs font-bold">🎬 Video</div>
+                  (() => {
+                    const ytId = getYouTubeId(mediaUrl);
+                    return ytId ? (
+                      <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} alt="YT Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
+                    ) : (
+                      <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white text-3xs font-bold">🎬 Video</div>
+                    );
+                  })()
                 )}
                 <span className="text-3xs text-muted truncate max-w-[120px]">{mediaUrl}</span>
               </div>

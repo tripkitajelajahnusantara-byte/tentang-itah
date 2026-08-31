@@ -36,10 +36,10 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
 
     // Client-side file size validation
     const MIN_SIZE = 10 * 1024; // 10KB
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_SIZE = 500 * 1024; // 500KB
 
     if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
-      setError('Ukuran gambar minimal 10 KB dan maksimal 5 MB');
+      setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
       return;
     }
 
@@ -77,12 +77,24 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
       return;
     }
 
+    const slugRegex = /^[a-z0-9-]+$/;
+    if (!slugRegex.test(id)) {
+      setError('ID Slug Daerah hanya boleh berisi huruf kecil, angka, dan tanda hubung (-). Tanpa spasi atau karakter spesial.');
+      return;
+    }
+
+    if (/[<>]/.test(name) || /[<>]/.test(description) || /[<>]/.test(locationInfo)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
     try {
       if (editingId) {
         const updated = await updateRegionAction(editingId, {
+          id: id.toLowerCase().trim(),
           name,
           description,
           location_info: locationInfo,
@@ -174,11 +186,10 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
             <input
               type="text"
               required
-              disabled={Boolean(editingId)}
               placeholder="Contoh: baritoutara, kotawaringinbarat"
               value={id}
               onChange={(e) => setId(e.target.value)}
-              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none disabled:opacity-50"
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
             />
           </div>
 

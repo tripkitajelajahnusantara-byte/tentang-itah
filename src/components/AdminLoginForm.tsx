@@ -6,6 +6,7 @@ import { loginAdminAction } from '@/app/actions';
 export default function AdminLoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -13,6 +14,16 @@ export default function AdminLoginForm() {
     e.preventDefault();
     if (!username || !password) {
       setError('Username dan password wajib diisi');
+      return;
+    }
+
+    if (/[<>]/.test(username) || /[<>]/.test(password)) {
+      setError('Username dan password tidak boleh mengandung karakter < atau >');
+      return;
+    }
+
+    if (username.length > 100 || password.length > 100) {
+      setError('Username dan password maksimal 100 karakter');
       return;
     }
 
@@ -70,6 +81,7 @@ export default function AdminLoginForm() {
               <input
                 type="email"
                 required
+                maxLength={100}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Masukkan username atau email"
@@ -80,14 +92,24 @@ export default function AdminLoginForm() {
             {/* Password */}
             <div className="space-y-1.5">
               <label className="text-2xs font-bold text-foreground/85 uppercase tracking-wider block">Kata Sandi (Password)</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan kata sandi"
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  maxLength={100}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan kata sandi"
+                  className="w-full pl-4 pr-12 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground text-2xs font-semibold focus:outline-none px-2 py-1 rounded hover:bg-muted/20"
+                >
+                  {showPassword ? 'Sembunyikan' : 'Tampilkan'}
+                </button>
+              </div>
             </div>
 
           </div>

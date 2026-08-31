@@ -28,6 +28,11 @@ export default function AdminContactForm({ initialData }: AdminContactFormProps)
       return;
     }
 
+    if (/[<>]/.test(email) || /[<>]/.test(phone) || /[<>]/.test(instagram) || /[<>]/.test(facebook) || /[<>]/.test(twitter) || /[<>]/.test(dekranasda) || /[<>]/.test(aboutUs)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     setSuccess(false);

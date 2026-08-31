@@ -36,10 +36,10 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
 
     // Client-side file size validation
     const MIN_SIZE = 10 * 1024; // 10KB
-    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
     if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
-      setError('Ukuran audio minimal 10 KB dan maksimal 10 MB');
+      setError('Ukuran audio minimal 10 KB dan maksimal 5 MB');
       return;
     }
 
@@ -77,6 +77,17 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
       return;
     }
 
+    const wordRegex = /^[a-zA-Z\s'-]+$/;
+    if (!wordRegex.test(word)) {
+      setError('Kata hanya boleh berisi huruf, spasi, tanda hubung (-), dan tanda petik (\')');
+      return;
+    }
+
+    if (/[<>]/.test(meaning) || /[<>]/.test(languageName)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -107,9 +118,11 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
       // Reset
       setWord('');
       setMeaning('');
+      setLanguageName('Dayak Ngaju');
       setAudioUrl('');
+      setDisplayDate(new Date().toISOString().split('T')[0]);
     } catch (err: any) {
-      setError(err.message || 'Gagal menyimpan kosakata harian (catatan: tanggal tampil harus unik)');
+      setError(err.message || 'Gagal menyimpan kosakata');
     } finally {
       setIsSubmitting(false);
     }

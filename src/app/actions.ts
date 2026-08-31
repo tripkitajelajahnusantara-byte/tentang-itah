@@ -15,6 +15,14 @@ export async function loginAdminAction(prevState: any, formData: FormData) {
       return { success: false, error: 'Username dan password wajib diisi' };
     }
 
+    if (username.length > 100 || password.length > 100) {
+      return { success: false, error: 'Username dan password maksimal 100 karakter' };
+    }
+
+    if (/[<>]/.test(username) || /[<>]/.test(password)) {
+      return { success: false, error: 'Karakter < dan > tidak diperbolehkan' };
+    }
+
     const result = await auth.loginAdmin(username, password);
     return result;
   } catch (error: any) {
@@ -345,7 +353,7 @@ export async function verifyContributionAction(id: string, status: 'approved' | 
     throw new Error('Unauthorized');
   }
   const contrib = await db.updateContributionStatus(id, status);
-  
+
   // If approved, dynamically insert into the correct content table based on contribution type!
   if (status === 'approved') {
     if (contrib.category === 'Cerita Rakyat') {
@@ -445,7 +453,7 @@ export async function getDashboardStatsAction() {
   }
 
   const dbData = db.readLocalDb();
-  
+
   const languagesCount = dbData.languages.length;
   const vocabulariesCount = dbData.vocabularies.length;
   const artsCount = dbData.arts_culture.length;
@@ -454,18 +462,18 @@ export async function getDashboardStatsAction() {
   const regionsCount = dbData.regions.length;
   const galleryCount = dbData.gallery.length;
   const quizzesCount = dbData.quizzes.length;
-  
+
   const pendingContributions = dbData.contributions.filter(c => c.status === 'pending').length;
   const approvedContributions = dbData.contributions.filter(c => c.status === 'approved').length;
 
-  const totalContentActive = 
-    languagesCount + 
-    vocabulariesCount + 
-    artsCount + 
-    traditionsCount + 
-    folkloreCount + 
-    regionsCount + 
-    galleryCount + 
+  const totalContentActive =
+    languagesCount +
+    vocabulariesCount +
+    artsCount +
+    traditionsCount +
+    folkloreCount +
+    regionsCount +
+    galleryCount +
     quizzesCount;
 
   return {

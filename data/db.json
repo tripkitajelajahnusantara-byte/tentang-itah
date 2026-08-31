@@ -143,6 +143,33 @@
       "origin_region": "Katingan & Kapuas",
       "meaning": "Melambangkan perlindungan fisik maupun spiritual bagi pemakainya. Secara historis digunakan sebagai baju perang yang dipercaya memiliki kekuatan magis kekebalan.",
       "image_url": "/images/tari-mandau-2.jpg"
+    },
+    {
+      "id": "art-5",
+      "category": "Kerajinan",
+      "name": "Tas Anyaman Rotan (Tas Jawet)",
+      "description": "Tas Jawet adalah tas anyaman tradisional suku Dayak Kalimantan Tengah yang dibuat dari tanaman rotan pilihan yang dibelah tipis-tipis. Anyaman ini dibuat secara manual dengan teknik presisi tinggi, menghasilkan motif geometris khas Dayak seperti kelakai, burung enggang, atau tameng.",
+      "origin_region": "Kapuas & Katingan",
+      "meaning": "Melambangkan ketekunan, keterampilan hidup selaras dengan alam, serta identitas status sosial dalam masyarakat Dayak.",
+      "image_url": "/images/tas-rotan-jawet.jpg"
+    },
+    {
+      "id": "art-6",
+      "category": "Kerajinan",
+      "name": "Batik Benang Bintik",
+      "description": "Batik Benang Bintik merupakan kain batik khas suku Dayak Kalimantan Tengah. Ciri khas batik ini adalah motifnya yang kental dengan simbol spiritual Dayak, terutama gambar pohon kehidupan Batang Garing, burung enggang, tameng Talawang, dan motif senjata Mandau.",
+      "origin_region": "Kota Palangka Raya",
+      "meaning": "Melambangkan hubungan harmonis antara manusia, alam semesta, dan sang pencipta (Ranying Hatalla Langit) serta perlindungan diri.",
+      "image_url": "/images/batik-benang-bintik.jpg"
+    },
+    {
+      "id": "art-7",
+      "category": "Musik",
+      "name": "Seni Lantun Karungut",
+      "description": "Karungut adalah seni sastra lisan tradisional suku Dayak berupa lantunan syair berirama khas yang diiringi petikan alat musik Kecapi Dayak atau Garantung. Syair Karungut berisi petuah bijak, nasihat kehidupan, sejarah leluhur, hingga pujian keindahan alam bumi Kalimantan.",
+      "origin_region": "Seluruh Wilayah Kalteng",
+      "meaning": "Berfungsi sebagai media penyampaian pesan moral, pendidikan nilai budi pekerti, dan perekat persaudaraan dalam masyarakat Dayak.",
+      "image_url": "/images/karungut.jpg"
     }
   ],
   "traditions": [
@@ -466,6 +493,12 @@
       "username": "admin@tentangitah.id",
       "expires_at": "2026-09-01T06:12:10.777Z",
       "created_at": "2026-08-31T06:12:10.785Z"
+    },
+    {
+      "id": "YWRtaW5AdGVudGFuZ2l0YWguaWQ6MTc4ODI2MDEyMDI0NWl0YWgtc2VjcmV0LXNlc3Npb24ta2V5LTIwMjY=",
+      "username": "admin@tentangitah.id",
+      "expires_at": "2026-09-01T10:55:20.245Z",
+      "created_at": "2026-08-31T10:55:20.247Z"
     }
   ]
 }

@@ -134,6 +134,17 @@ export default function ContributionForm() {
       return;
     }
 
+    if (/[<>]/.test(senderName) || /[<>]/.test(senderEmail) || /[<>]/.test(title) || /[<>]/.test(description)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(senderEmail)) {
+      setError('Format alamat email tidak valid');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 

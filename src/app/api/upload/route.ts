@@ -20,9 +20,11 @@ export async function POST(req: NextRequest) {
     const MIN_FILE_SIZE = 10 * 1024; // 10KB
     const MAX_IMAGE_SIZE = 500 * 1024; // 500KB
     const MAX_AUDIO_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_VIDEO_SIZE = 4 * 1024 * 1024; // 4MB
 
     const isImage = fileType === 'image/jpeg' || fileType === 'image/png' || fileType === 'image/jpg' || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png');
-    const isAudio = fileType === 'audio/mpeg' || fileType === 'audio/mp3' || fileName.endsWith('.mp3');
+    const isAudio = fileType === 'audio/mpeg' || fileType === 'audio/mp3' || fileName.endsWith('.mp3') || fileType === 'audio/x-mpeg-3' || fileType === 'audio/mp3';
+    const isVideo = fileType.startsWith('video/') || fileName.endsWith('.mp4') || fileName.endsWith('.webm') || fileName.endsWith('.mov');
 
     if (isImage) {
       if (fileSize < MIN_FILE_SIZE || fileSize > MAX_IMAGE_SIZE) {
@@ -32,8 +34,12 @@ export async function POST(req: NextRequest) {
       if (fileSize < MIN_FILE_SIZE || fileSize > MAX_AUDIO_SIZE) {
         return NextResponse.json({ error: 'Ukuran audio minimal 10 KB dan maksimal 5 MB' }, { status: 400 });
       }
+    } else if (isVideo) {
+      if (fileSize < MIN_FILE_SIZE || fileSize > MAX_VIDEO_SIZE) {
+        return NextResponse.json({ error: 'Ukuran video minimal 10 KB dan maksimal 4 MB' }, { status: 400 });
+      }
     } else {
-      return NextResponse.json({ error: 'Format berkas tidak didukung. Hanya gambar (JPG, JPEG, PNG) dan audio (MP3) yang diperbolehkan' }, { status: 400 });
+      return NextResponse.json({ error: 'Format berkas tidak didukung. Hanya gambar (JPG, JPEG, PNG), audio (MP3), dan video (MP4, WEBM, MOV) yang diperbolehkan' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
@@ -42,7 +48,7 @@ export async function POST(req: NextRequest) {
     const fileExtension = path.extname(file.name).toLowerCase();
     const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}${fileExtension}`;
 
-    // --- SUPABASE STORAGE UPLOAD FALLBACK ---
+    // --- SUPABASE STORAGE UPLOAD ---
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && supabase) {
       try {
         const { data, error } = await supabase.storage
@@ -53,30 +59,47 @@ export async function POST(req: NextRequest) {
             upsert: false
           });
         
-        if (!error && data) {
+        if (error) {
+          console.error('Supabase storage upload error:', error);
+          return NextResponse.json({ 
+            error: `Gagal mengunggah ke Supabase Storage: ${error.message}. Pastikan bucket "tentang-itah" sudah dibuat dan memiliki policy publik.` 
+          }, { status: 500 });
+        }
+
+        if (data) {
           const { data: publicUrlData } = supabase.storage
             .from('tentang-itah')
             .getPublicUrl(uniqueFilename);
           
           return NextResponse.json({ url: publicUrlData.publicUrl });
         }
-      } catch (storageError) {
-        console.error('Supabase storage upload error, falling back to local:', storageError);
+      } catch (storageError: any) {
+        console.error('Supabase storage exception:', storageError);
+        return NextResponse.json({ 
+          error: `Eksepsi saat mengunggah ke Supabase: ${storageError.message}` 
+        }, { status: 500 });
       }
     }
 
     // --- LOCAL STORAGE UPLOAD ---
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    try {
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const filePath = path.join(uploadDir, uniqueFilename);
+      await fs.promises.writeFile(filePath, buffer);
+
+      return NextResponse.json({ 
+        url: `/uploads/${uniqueFilename}` 
+      });
+    } catch (localError: any) {
+      console.error('Local storage write error:', localError);
+      return NextResponse.json({ 
+        error: `Gagal menyimpan berkas secara lokal di server: ${localError.message}` 
+      }, { status: 500 });
     }
-
-    const filePath = path.join(uploadDir, uniqueFilename);
-    await fs.promises.writeFile(filePath, buffer);
-
-    return NextResponse.json({ 
-      url: `/uploads/${uniqueFilename}` 
-    });
   } catch (error: any) {
     console.error('Upload handler error:', error);
     return NextResponse.json({ error: error.message || 'Gagal mengunggah berkas' }, { status: 500 });

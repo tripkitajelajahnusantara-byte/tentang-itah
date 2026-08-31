@@ -28,10 +28,10 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
 
     // Client-side file size validation
     const MIN_SIZE = 10 * 1024; // 10KB
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_SIZE = 500 * 1024; // 500KB
 
     if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
-      setError('Ukuran gambar minimal 10 KB dan maksimal 5 MB');
+      setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
       return;
     }
 
@@ -66,6 +66,11 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (/[<>]/.test(heroTitle) || /[<>]/.test(heroSubtitle) || /[<>]/.test(ctaText)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     setSuccess(false);
