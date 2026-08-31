@@ -96,25 +96,25 @@ export default async function Home() {
             <img 
               src="/images/logo_kemendikbud.png" 
               alt="Kementerian Kebudayaan" 
-              className="h-12 sm:h-16 md:h-18 w-auto object-contain hover:scale-105 transition-all duration-300" 
+              className="h-12 sm:h-16 md:h-18 w-auto object-contain mix-blend-multiply hover:scale-105 transition-all duration-300" 
             />
             <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
             <img 
               src="/images/logo_dana_indonesiana.png" 
               alt="Dana Indonesiana" 
-              className="h-10 sm:h-12 md:h-14 w-auto object-contain hover:scale-105 transition-all duration-300" 
+              className="h-20 sm:h-26 md:h-30 w-auto object-contain mix-blend-multiply hover:scale-105 transition-all duration-300" 
             />
             <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
             <img 
               src="/images/logo_lpdp.png" 
               alt="LPDP" 
-              className="h-12 sm:h-16 md:h-18 w-auto object-contain hover:scale-105 transition-all duration-300" 
+              className="h-12 sm:h-16 md:h-18 w-auto object-contain mix-blend-multiply hover:scale-105 transition-all duration-300" 
             />
             <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
             <img 
               src="/images/logo_tentang_itah.png" 
               alt="Tentang Itah" 
-              className="h-12 sm:h-16 md:h-18 w-auto object-contain hover:scale-105 transition-all duration-300" 
+              className="h-12 sm:h-16 md:h-18 w-auto object-contain mix-blend-multiply hover:scale-105 transition-all duration-300" 
             />
           </div>
         </div>
@@ -153,7 +153,7 @@ export default async function Home() {
           
           {/* Ilustrasi Betang */}
           <div className="lg:col-span-5 relative w-full aspect-[4/3] rounded-2xl shadow-md border border-card-border overflow-hidden">
-            <DynamicImage src="/images/about-illustration.jpg" alt="Ilustrasi Rumah Betang Dayak" className="w-full h-full" />
+            <DynamicImage src="/images/wadian-bawo.jpg" alt="Ilustrasi Falsafah Huma Betang" className="w-full h-full" />
           </div>
 
         </div>

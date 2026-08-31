@@ -72,7 +72,7 @@ export default function AdminLoginForm() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin@tentangitah.id"
+                placeholder="Masukkan username atau email"
                 className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all"
               />
             </div>
@@ -85,7 +85,7 @@ export default function AdminLoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Masukkan kata sandi"
                 className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all"
               />
             </div>
@@ -111,15 +111,6 @@ export default function AdminLoginForm() {
             )}
           </button>
         </form>
-
-        {/* Demo Kredensial Callout */}
-        <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 space-y-1.5 text-3xs text-muted leading-relaxed">
-          <span className="font-bold text-primary uppercase block">Kredensial Demo Pengujian:</span>
-          <p>
-            <span className="font-semibold text-foreground/80">Username:</span> admin@tentangitah.id<br />
-            <span className="font-semibold text-foreground/80">Password:</span> ItahAdmin2026!
-          </p>
-        </div>
 
       </div>
     </div>

@@ -33,6 +33,23 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_VIDEO_SIZE = 2 * 1024 * 1024; // 2MB
+
+    if (file.type.startsWith('image/')) {
+      if (file.size < MIN_SIZE || file.size > MAX_IMAGE_SIZE) {
+        setError('Ukuran gambar minimal 10 KB dan maksimal 5 MB');
+        return;
+      }
+    } else {
+      if (file.size > MAX_VIDEO_SIZE) {
+        setError('Ukuran video maksimal adalah 2MB');
+        return;
+      }
+    }
+
     setIsUploading(true);
     setError('');
 
@@ -194,11 +211,16 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Unggah Berkas Media *</label>
             <input
               type="file"
-              accept={type === 'image' ? 'image/*' : 'video/*'}
+              accept={type === 'image' ? 'image/jpeg,image/png,image/jpg' : 'video/*'}
               onChange={handleFileUpload}
-              disabled={isUploading}
-              className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
+              disabled={isUploading || type === 'video'}
+              className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer disabled:opacity-50"
             />
+            <p className="text-4xs text-muted/70 mt-1">
+              {type === 'image' 
+                ? 'Format: JPG, JPEG, PNG (Maksimal 500 KB)' 
+                : 'Unggah Video dinonaktifkan sesuai kebijakan kapasitas terbaru'}
+            </p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah media...</p>}
             {mediaUrl && (
               <div className="flex gap-2 items-center mt-2">

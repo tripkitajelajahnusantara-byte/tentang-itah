@@ -12,26 +12,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Tidak ada berkas yang diunggah' }, { status: 400 });
     }
 
-    // --- FILE SIZE VALIDATION ---
+    // --- FILE SIZE & FORMAT VALIDATION ---
     const fileType = file.type || '';
     const fileSize = file.size; // in bytes
+    const fileName = file.name.toLowerCase();
 
-    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-    const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB
-    const MAX_DEFAULT_SIZE = 2 * 1024 * 1024; // 2MB
+    const MIN_FILE_SIZE = 10 * 1024; // 10KB
+    const MAX_IMAGE_SIZE = 500 * 1024; // 500KB
+    const MAX_AUDIO_SIZE = 5 * 1024 * 1024; // 5MB
 
-    if (fileType.startsWith('image/')) {
-      if (fileSize > MAX_IMAGE_SIZE) {
-        return NextResponse.json({ error: 'Ukuran gambar maksimal adalah 5MB' }, { status: 400 });
+    const isImage = fileType === 'image/jpeg' || fileType === 'image/png' || fileType === 'image/jpg' || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png');
+    const isAudio = fileType === 'audio/mpeg' || fileType === 'audio/mp3' || fileName.endsWith('.mp3');
+
+    if (isImage) {
+      if (fileSize < MIN_FILE_SIZE || fileSize > MAX_IMAGE_SIZE) {
+        return NextResponse.json({ error: 'Ukuran gambar minimal 10 KB dan maksimal 500 KB' }, { status: 400 });
       }
-    } else if (fileType.startsWith('audio/')) {
-      if (fileSize > MAX_AUDIO_SIZE) {
-        return NextResponse.json({ error: 'Ukuran file audio maksimal adalah 10MB' }, { status: 400 });
+    } else if (isAudio) {
+      if (fileSize < MIN_FILE_SIZE || fileSize > MAX_AUDIO_SIZE) {
+        return NextResponse.json({ error: 'Ukuran audio minimal 10 KB dan maksimal 5 MB' }, { status: 400 });
       }
     } else {
-      if (fileSize > MAX_DEFAULT_SIZE) {
-        return NextResponse.json({ error: 'Ukuran file maksimal adalah 2MB' }, { status: 400 });
-      }
+      return NextResponse.json({ error: 'Format berkas tidak didukung. Hanya gambar (JPG, JPEG, PNG) dan audio (MP3) yang diperbolehkan' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();

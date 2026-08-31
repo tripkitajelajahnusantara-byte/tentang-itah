@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -8,6 +8,17 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isCultureOpen, setIsCultureOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.culture-dropdown-container')) {
+        setIsCultureOpen(false);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
 
   const handleLinkClick = () => {
     setIsOpen(false);
@@ -40,36 +51,38 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo / Brand Name - Single Brand Logo as requested */}
+          {/* Logo / Brand Name - 4 Logos grouped on the left, Tentang Itah on the right of the sponsors */}
           <div className="flex items-center">
+            {/* The 3 sponsor logos - visible on mobile with small height */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 mr-2.5 pr-2.5 border-r border-foreground/15 py-0.5 shrink-0">
+              <img 
+                src="/images/logo_kemendikbud.png" 
+                alt="Kementerian Kebudayaan" 
+                className="h-5 sm:h-7 w-auto object-contain mix-blend-multiply" 
+              />
+              <img 
+                src="/images/logo_dana_indonesiana.png" 
+                alt="Dana Indonesiana" 
+                className="h-8 sm:h-11 w-auto object-contain mix-blend-multiply" 
+              />
+              <img 
+                src="/images/logo_lpdp.png" 
+                alt="LPDP" 
+                className="h-5 sm:h-7 w-auto object-contain mix-blend-multiply" 
+              />
+            </div>
+
+            {/* Tentang Itah brand logo on the right of sponsors */}
             <Link href="/" onClick={handleLinkClick} className="flex items-center gap-2 group">
               <img 
                 src="/images/logo_tentang_itah.png" 
                 alt="Tentang Itah Logo" 
-                className="h-8 sm:h-9 w-auto object-contain rounded-md" 
+                className="h-8 sm:h-9 w-auto object-contain mix-blend-multiply" 
               />
               <span className="font-serif text-base sm:text-lg font-bold tracking-tight text-[#221A15] group-hover:text-primary transition-colors leading-none">
                 Tentang Itah
               </span>
             </Link>
-            
-            {/* The 3 sponsor logos next to it - visible on mobile with small height */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 ml-2.5 pl-2.5 border-l border-foreground/15 py-0.5 shrink-0">
-              <img 
-                src="/images/logo_kemendikbud.png" 
-                alt="Kementerian Kebudayaan" 
-                className="h-5 sm:h-7 w-auto object-contain" 
-              />
-              <img 
-                src="/images/logo_dana_indonesiana.png" 
-                alt="Dana Indonesiana" 
-                className="h-4 sm:h-5.5 w-auto object-contain" 
-              />
-              <img 
-                src="/images/logo_lpdp.png" 
-                alt="LPDP" 
-                className="h-5 sm:h-7 w-auto object-contain" 
-              />
-            </div>
           </div>
 
           {/* Desktop Navigation Links */}
@@ -99,10 +112,12 @@ export default function Navbar() {
             </Link>
 
             {/* Dropdown Culture */}
-            <div className="relative">
+            <div className="relative culture-dropdown-container">
               <button
-                onClick={() => setIsCultureOpen(!isOpen)}
-                onMouseEnter={() => setIsCultureOpen(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsCultureOpen(!isCultureOpen);
+                }}
                 className={`pb-1 text-sm font-medium transition-all flex items-center gap-1 border-b-2 ${
                   isCultureActive()
                     ? 'text-primary border-primary font-semibold'
@@ -117,7 +132,6 @@ export default function Navbar() {
 
               {/* Dropdown Panel */}
               <div 
-                onMouseLeave={() => setIsCultureOpen(false)}
                 className={`absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-card-bg border border-card-border/80 py-1 z-50 transition-all duration-200 ${
                   isCultureOpen 
                     ? 'opacity-100 translate-y-0 pointer-events-auto' 

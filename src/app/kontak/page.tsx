@@ -3,7 +3,7 @@ import { getContact } from '@/lib/db';
 export const revalidate = 0; // Dynamic server rendering to reflect admin updates immediately
 
 export const metadata = {
-  title: 'Hubungi Kontak Pengelola',
+  title: 'Hubungi Kontak Pengelola - Tentang Itah',
   description: 'Hubungi sekretariat pengelola Tentang Itah. Dapatkan alamat lengkap, email, media sosial, dan nomor kontak kami.',
 };
 
@@ -14,187 +14,157 @@ export default async function ContactPage() {
   } catch (error) {
     console.error('Failed to load contact data:', error);
     contact = {
-      email: 'kontak@tentangitah.id',
-      instagram: '@tentangitah.kalteng',
-      facebook: 'Tentang Itah Kalteng',
-      twitter: '@tentangitah',
-      address: 'Jl. Tjilik Riwut KM 2.5, Kota Palangka Raya, Kalimantan Tengah 73111',
-      phone: '+62 811-520-2026',
+      email: 'tentangitah@gmail.com',
+      instagram: '@tentangitah',
+      facebook: 'Tentang Itah',
+      dekranasda_kalteng: '@dekranasdaprovkalteng',
+      phone: '082274595638',
       about_us: 'Platform edukasi budaya independen yang dikembangkan oleh putra-putri daerah Kalimantan Tengah untuk melestarikan identitas lokal di era globalisasi.'
     };
   }
 
+  // Ensure contact has correct values in case some fields are missing from DB
+  const email = contact.email || 'tentangitah@gmail.com';
+  const instagram = contact.instagram || '@tentangitah';
+  const facebook = contact.facebook || 'Tentang Itah';
+  const phone = contact.phone || '082274595638';
+  const dekranasda = contact.dekranasda_kalteng || '@dekranasdaprovkalteng';
+
+  // Format WA number for URL (remove non-digits, handle local format)
+  const cleanWaNumber = phone.replace(/\D/g, '');
+  const waUrl = `https://wa.me/${cleanWaNumber.startsWith('0') ? '62' + cleanWaNumber.slice(1) : cleanWaNumber}`;
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 space-y-16 pt-32">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 space-y-16 pt-32 bg-[radial-gradient(#FAF6EE_1px,transparent_1px)] [background-size:24px_24px]">
       
-      {/* Header (Figma Design Language) */}
-      <div className="text-center max-w-3xl mx-auto space-y-4">
-        <span className="text-secondary font-extrabold tracking-widest text-3xs sm:text-2xs uppercase">
-          ◆ HUBUNGI KAMI ◆
+      {/* Header Section */}
+      <div className="text-center max-w-3xl mx-auto space-y-6 animate-fade-in">
+        <span className="inline-flex items-center gap-2 text-secondary font-extrabold tracking-widest text-3xs sm:text-2xs uppercase bg-[#FAF6EE] px-4 py-1.5 rounded-full border border-card-border/60 shadow-4xs">
+          <span className="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" />
+          Hubungi Kami
         </span>
-        <h1 className="font-serif text-4xl sm:text-5xl font-bold text-foreground">
-          Hubungi Pengelola Tentang Itah
+        <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+          Mari Terhubung Bersama Kami
         </h1>
-        <div className="w-20 h-0.5 bg-secondary mx-auto" />
+        <div className="w-24 h-1 bg-gradient-to-r from-primary via-secondary to-primary mx-auto rounded-full" />
         <p className="text-muted text-sm sm:text-base font-light leading-relaxed max-w-2xl mx-auto font-sans">
-          Mempunyai saran, kerja sama kebudayaan, atau koreksi data penelitian? Hubungi kami melalui saluran resmi sekretariat pengelola di bawah ini.
+          Mempunyai saran, kemitraan kebudayaan, atau masukan? Silakan hubungi kami melalui saluran resmi pengelola Tentang Itah di bawah ini.
         </p>
       </div>
 
-      {/* Grid Content: 3-column horizontal grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Grid Content: 5 Premium Cards (Exactly representing the requested 5 channels) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         
-        {/* Card 1: Email */}
-        <div className="bg-white border border-card-border/60 p-8 rounded-2xl shadow-3xs card-lift flex flex-col items-center text-center space-y-5">
-          <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center text-primary shrink-0 shadow-3xs">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        {/* Card 1: WhatsApp */}
+        <div className="bg-white border border-card-border/60 p-5 rounded-2xl shadow-3xs hover:shadow-2xs transition-all duration-300 flex flex-col justify-between items-center text-center space-y-5 group hover:-translate-y-1">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-3xs group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-5.5 h-5.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.456L0 24zm6.59-4.846c1.66.986 3.288 1.487 4.885 1.488 5.275 0 9.56-4.283 9.564-9.56.002-2.556-.994-4.959-2.805-6.77C16.429 2.498 14.032 1.5 11.48 1.5 6.204 1.5 1.92 5.78 1.916 11.057c-.001 1.692.457 3.327 1.33 4.773L2.2 20.394l4.447-1.24zm12.18-5.834c-.269-.134-1.594-.787-1.84-.875-.246-.089-.425-.134-.605.134-.18.269-.695.875-.853 1.053-.158.178-.316.2-.585.067-.27-.134-1.14-.419-2.17-1.34-.803-.715-1.345-1.6-1.503-1.869-.158-.269-.017-.415.118-.549.12-.12.27-.316.404-.473.134-.158.18-.269.269-.448.09-.179.045-.337-.022-.472-.068-.135-.605-1.458-.828-1.995-.219-.527-.456-.63-.464-.162-.008-.347-.009-.533-.009-.186 0-.489.07-.745.347-.256.277-.98.957-.98 2.33 0 1.373 1 2.699 1.14 2.884.14.185 1.968 3.005 4.767 4.212.666.287 1.185.459 1.589.587.671.213 1.28.183 1.761.111.536-.08 1.594-.65 1.819-1.277.225-.627.225-1.164.158-1.277-.067-.113-.246-.179-.515-.313z"/>
+            </svg>
+          </div>
+          <div className="space-y-1.5 flex-grow">
+            <h3 className="font-serif text-base font-bold text-foreground">WhatsApp</h3>
+            <p className="text-[10px] text-muted leading-relaxed font-light font-sans max-w-[160px] mx-auto">Konsultasi cepat atau pertanyaan langsung lewat chat WA.</p>
+          </div>
+          <a 
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full text-emerald-600 hover:bg-emerald-600 hover:text-white font-bold block text-xs py-2.5 rounded-xl border border-emerald-100 bg-emerald-50/50 transition-all duration-300"
+          >
+            {phone}
+          </a>
+        </div>
+
+        {/* Card 2: Instagram */}
+        <div className="bg-white border border-card-border/60 p-5 rounded-2xl shadow-3xs hover:shadow-2xs transition-all duration-300 flex flex-col justify-between items-center text-center space-y-5 group hover:-translate-y-1">
+          <div className="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center shadow-3xs group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-5.5 h-5.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </svg>
+          </div>
+          <div className="space-y-1.5 flex-grow">
+            <h3 className="font-serif text-base font-bold text-foreground">Instagram</h3>
+            <p className="text-[10px] text-muted leading-relaxed font-light font-sans max-w-[160px] mx-auto">Update berkala kegiatan pelestarian dan galeri visual kami.</p>
+          </div>
+          <a 
+            href={`https://www.instagram.com/${instagram.replace('@', '')}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full text-pink-600 hover:bg-pink-600 hover:text-white font-bold block text-xs py-2.5 rounded-xl border border-pink-100 bg-pink-50/50 transition-all duration-300"
+          >
+            {instagram}
+          </a>
+        </div>
+
+        {/* Card 3: Facebook */}
+        <div className="bg-white border border-card-border/60 p-5 rounded-2xl shadow-3xs hover:shadow-2xs transition-all duration-300 flex flex-col justify-between items-center text-center space-y-5 group hover:-translate-y-1">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-3xs group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-5.5 h-5.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
+            </svg>
+          </div>
+          <div className="space-y-1.5 flex-grow">
+            <h3 className="font-serif text-base font-bold text-foreground">Facebook</h3>
+            <p className="text-[10px] text-muted leading-relaxed font-light font-sans max-w-[160px] mx-auto">Media komunikasi sosial dan komunitas digital kami.</p>
+          </div>
+          <a 
+            href="https://www.instagram.com/tentangitah/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full text-blue-600 hover:bg-blue-600 hover:text-white font-bold block text-xs py-2.5 rounded-xl border border-blue-100 bg-blue-50/50 transition-all duration-300"
+          >
+            {facebook}
+          </a>
+        </div>
+
+        {/* Card 4: Email */}
+        <div className="bg-white border border-card-border/60 p-5 rounded-2xl shadow-3xs hover:shadow-2xs transition-all duration-300 flex flex-col justify-between items-center text-center space-y-5 group hover:-translate-y-1">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-3xs group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <div className="space-y-3 flex-grow flex flex-col justify-between w-full">
-            <div>
-              <h3 className="font-serif text-lg font-bold text-foreground">Surel Resmi</h3>
-              <p className="text-3xs text-muted leading-relaxed font-light font-sans mt-1">Kirim surat elektronik umum atau proposal kolaborasi riset.</p>
-            </div>
-            <a href={`mailto:${contact.email}`} className="text-primary hover:text-primary-hover font-bold block text-sm pt-3 break-all bg-primary/5 py-2.5 rounded-lg border border-primary/10 transition-colors">
-              {contact.email}
-            </a>
-          </div>
-        </div>
-
-        {/* Card 2: Phone */}
-        {contact.phone && (
-          <div className="bg-white border border-card-border/60 p-8 rounded-2xl shadow-3xs card-lift flex flex-col items-center text-center space-y-5">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center text-primary shrink-0 shadow-3xs">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-            </div>
-            <div className="space-y-3 flex-grow flex flex-col justify-between w-full">
-              <div>
-                <h3 className="font-serif text-lg font-bold text-foreground">Telepon & WA</h3>
-                <p className="text-3xs text-muted leading-relaxed font-light font-sans mt-1">Layanan sambungan telepon call center sekretariat.</p>
-              </div>
-              <a href={`tel:${contact.phone}`} className="text-primary hover:text-primary-hover font-bold block text-sm pt-3 bg-primary/5 py-2.5 rounded-lg border border-primary/10 transition-colors">
-                {contact.phone}
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* Card 3: Address */}
-        <div className="bg-white border border-card-border/60 p-8 rounded-2xl shadow-3xs card-lift flex flex-col items-center text-center space-y-5">
-          <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center text-primary shrink-0 shadow-3xs">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <div className="space-y-3 flex-grow flex flex-col justify-between w-full">
-            <div>
-              <h3 className="font-serif text-lg font-bold text-foreground">Sekretariat Kantor</h3>
-              <p className="text-3xs text-muted leading-relaxed font-light font-sans mt-1">Alamat fisik operasional redaksi Tentang Itah.</p>
-            </div>
-            <p className="text-foreground/90 text-xs font-semibold pt-3 leading-relaxed break-words bg-primary/5 py-2 px-3 rounded-lg border border-primary/10 min-h-[44px] flex items-center justify-center">
-              {contact.address}
-            </p>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Redesigned Mock Location Map card (Adding premium aesthetic) */}
-      <div className="bg-white border border-card-border/60 rounded-3xl p-6 sm:p-8 max-w-4xl mx-auto shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-card-border/40 pb-4">
-          <div className="space-y-1">
-            <span className="text-3xs uppercase tracking-widest font-extrabold text-secondary">PETA LOKASI SEKRETARIAT</span>
-            <h3 className="font-serif text-lg sm:text-xl font-bold text-foreground">Palangka Raya, Kalimantan Tengah</h3>
+          <div className="space-y-1.5 flex-grow">
+            <h3 className="font-serif text-base font-bold text-foreground">Surel Resmi</h3>
+            <p className="text-[10px] text-muted leading-relaxed font-light font-sans max-w-[160px] mx-auto">Kirim surat elektronik umum atau proposal kolaborasi riset.</p>
           </div>
           <a 
-            href={`https://maps.google.com/?q=${encodeURIComponent(contact.address)}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="px-5 py-2.5 bg-[#120F0D] hover:bg-[#221A15] text-white text-xs font-bold rounded-full transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-black/10"
+            href={`mailto:${email}`} 
+            className="w-full text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold block text-xs py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/50 transition-all duration-300"
           >
-            <svg className="w-4 h-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            Buka Petunjuk Arah
+            {email}
           </a>
         </div>
-        
-        {/* Breathtaking CSS Map Mockup representing local coordinate */}
-        <div className="h-64 rounded-2xl bg-[#EBE4DC] border border-card-border/40 relative overflow-hidden flex items-center justify-center">
-          {/* Abstract map lines */}
-          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#120F0D_1px,transparent_1px)] [background-size:16px_16px]" />
-          <div className="absolute w-full h-1 bg-[#120F0D]/10 top-1/3 transform -rotate-12" />
-          <div className="absolute w-full h-1.5 bg-[#120F0D]/10 top-1/2 transform rotate-6" />
-          <div className="absolute h-full w-1 bg-[#120F0D]/10 left-1/3 transform rotate-12" />
-          <div className="absolute h-full w-1.5 bg-[#120F0D]/10 left-2/3 transform -rotate-6" />
-          
-          {/* Animated Gold Location Marker Pin */}
-          <div className="relative z-10 flex flex-col items-center space-y-2">
-            <div className="relative flex items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-secondary/30 opacity-75" />
-              <div className="w-10 h-10 bg-[#C0482B] rounded-full flex items-center justify-center text-white border-2 border-white shadow-md">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                </svg>
-              </div>
-            </div>
-            <div className="bg-[#120F0D] text-white px-3.5 py-1.5 rounded-lg text-3xs font-bold uppercase tracking-wider shadow-md border border-card-border/20 text-center">
-              <p className="text-secondary font-extrabold tracking-widest pb-0.5">TENTANG ITAH OFFICE</p>
-              <p className="text-white/60 lowercase text-[9px] font-normal leading-none font-sans">Palangka Raya, Kalteng</p>
-            </div>
+
+        {/* Card 5: Dekranasda Kalteng */}
+        <div className="bg-white border border-card-border/60 p-5 rounded-2xl shadow-3xs hover:shadow-2xs transition-all duration-300 flex flex-col justify-between items-center text-center space-y-5 group hover:-translate-y-1">
+          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shadow-3xs group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-5.5 h-5.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </svg>
           </div>
+          <div className="space-y-1.5 flex-grow">
+            <h3 className="font-serif text-base font-bold text-foreground">Dekranasda</h3>
+            <p className="text-[10px] text-muted leading-relaxed font-light font-sans max-w-[160px] mx-auto">Mitra resmi pelestarian kerajinan & seni budaya Kalteng.</p>
+          </div>
+          <a 
+            href="https://www.instagram.com/dekranasdaprovkalteng/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full text-amber-700 hover:bg-amber-600 hover:text-white font-bold block text-xs py-2.5 rounded-xl border border-amber-100 bg-amber-50/50 transition-all duration-300"
+          >
+            {dekranasda}
+          </a>
         </div>
+
       </div>
 
-      {/* Dynamic Social Media Section */}
-      {(contact.instagram || contact.facebook || contact.twitter) && (
-        <div className="bg-[#FAF6EE] border border-card-border p-6 rounded-2xl shadow-3xs max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 font-sans text-xs">
-          <span className="font-extrabold text-foreground/80 uppercase tracking-widest text-3xs">MEDIA SOSIAL RESMI PENGELOLA</span>
-          <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
-            {contact.instagram && (
-              <a 
-                href={`https://instagram.com/${contact.instagram.replace('@', '')}`}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:scale-105 transition-all flex items-center gap-2 px-4 py-2 border border-card-border bg-white rounded-full text-foreground/80 shadow-3xs"
-              >
-                <span className="text-[#C68A35] font-extrabold tracking-widest text-[9px] uppercase">Instagram</span>
-                <span className="font-bold text-3xs">{contact.instagram}</span>
-              </a>
-            )}
-            {contact.facebook && (
-              <a 
-                href="#"
-                className="hover:scale-105 transition-all flex items-center gap-2 px-4 py-2 border border-card-border bg-white rounded-full text-foreground/80 shadow-3xs"
-              >
-                <span className="text-[#C68A35] font-extrabold tracking-widest text-[9px] uppercase">Facebook</span>
-                <span className="font-bold text-3xs">{contact.facebook}</span>
-              </a>
-            )}
-            {contact.twitter && (
-              <a 
-                href={`https://twitter.com/${contact.twitter.replace('@', '')}`}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:scale-105 transition-all flex items-center gap-2 px-4 py-2 border border-card-border bg-white rounded-full text-foreground/80 shadow-3xs"
-              >
-                <span className="text-[#C68A35] font-extrabold tracking-widest text-[9px] uppercase">Twitter</span>
-                <span className="font-bold text-3xs">{contact.twitter}</span>
-              </a>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Description / Summary Callout */}
-      <div className="bg-[#120F0D] text-white/90 border border-card-border/20 rounded-3xl p-8 max-w-4xl mx-auto text-center space-y-4 shadow-sm font-sans relative overflow-hidden">
+      <div className="bg-[#120F0D] text-white/90 border border-card-border/20 rounded-3xl p-8 max-w-5xl mx-auto text-center space-y-4 shadow-sm relative overflow-hidden font-sans">
         {/* Subtle decorative quote marks */}
-        <span className="absolute top-4 left-6 text-white/5 font-serif text-8xl leading-none">“</span>
-        <span className="absolute bottom-2 right-6 text-white/5 font-serif text-8xl leading-none">”</span>
+        <span className="absolute top-4 left-6 text-white/5 font-serif text-8xl leading-none select-none">“</span>
+        <span className="absolute bottom-2 right-6 text-white/5 font-serif text-8xl leading-none select-none">”</span>
         <h4 className="font-serif text-lg font-bold text-secondary tracking-wide z-10 relative">Deskripsi Pengelola Tentang Itah</h4>
         <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-light max-w-2xl mx-auto z-10 relative text-justify md:text-center">
           {contact.about_us || 'Platform edukasi budaya independen yang dikembangkan oleh putra-putri daerah Kalimantan Tengah untuk melestarikan identitas lokal di era globalisasi.'}

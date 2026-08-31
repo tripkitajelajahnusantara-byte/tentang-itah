@@ -14,12 +14,8 @@ export async function loginAdminAction(prevState: any, formData: FormData) {
     return { success: false, error: 'Username dan password wajib diisi' };
   }
 
-  const success = await auth.loginAdmin(username, password);
-  if (success) {
-    return { success: true };
-  } else {
-    return { success: false, error: 'Username atau password salah' };
-  }
+  const result = await auth.loginAdmin(username, password);
+  return result;
 }
 
 export async function logoutAdminAction() {
@@ -349,6 +345,7 @@ export async function verifyContributionAction(id: string, status: 'approved' | 
         title: contrib.title,
         content: contrib.description,
         image_url: contrib.image_url,
+        audio_url: contrib.audio_url,
         region: 'Kalimantan Tengah',
       });
       revalidatePath('/cerita-rakyat');

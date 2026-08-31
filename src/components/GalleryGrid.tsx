@@ -20,7 +20,15 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
             <div
               key={item.id}
               onClick={() => setActiveItem(item)}
-              className="bg-card-bg border border-card-border/60 rounded-xl overflow-hidden card-lift group cursor-pointer flex flex-col justify-between"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveItem(item);
+                }
+              }}
+              className="bg-card-bg border border-card-border/60 rounded-xl overflow-hidden card-lift group cursor-pointer flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               {/* Media Thumbnail */}
               <div className="w-full aspect-[4/3] overflow-hidden relative bg-zinc-950/10">
@@ -67,14 +75,18 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
                 </div>
 
                 {/* Card Footer Link */}
-                <div className="pt-2 border-t border-card-border/40">
-                  <span className="inline-flex items-center text-xs font-bold text-primary hover:text-primary-hover transition-all">
-                    Lihat Dokumentasi Lanjutan
-                    <svg className="w-3.5 h-3.5 ml-1.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveItem(item);
+                  }}
+                  className="pt-2 border-t border-card-border/40 w-full text-left inline-flex items-center text-xs font-bold text-primary hover:text-primary-hover transition-all focus:outline-none cursor-pointer bg-transparent"
+                >
+                  Lihat Dokumentasi Lanjutan
+                  <svg className="w-3.5 h-3.5 ml-1.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
           ))}

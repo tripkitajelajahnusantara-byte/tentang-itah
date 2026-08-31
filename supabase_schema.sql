@@ -127,6 +127,7 @@ CREATE TABLE IF NOT EXISTS contributions (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT,
+    audio_url TEXT,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
     created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -153,7 +154,15 @@ CREATE TABLE IF NOT EXISTS contact (
     about_us TEXT
 );
 
+-- 15. ACTIVE SESSIONS TABLE
+CREATE TABLE IF NOT EXISTS active_sessions (
+    id TEXT PRIMARY KEY, -- Session token signature/identifier
+    username TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
 -- Seed initial Admin Account
 INSERT INTO admins (username, password)
-VALUES ('admin@tentangitah.id', 'ItahAdmin2026!')
+VALUES ('admin@tentangitah.id', 'Kalimantancerah123#')
 ON CONFLICT (username) DO NOTHING;

@@ -26,6 +26,15 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
+      setError('Ukuran gambar minimal 10 KB dan maksimal 5 MB');
+      return;
+    }
+
     setIsUploading(fieldName);
     setError('');
 
@@ -138,12 +147,13 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/jpg"
             onChange={(e) => handleFileUpload(e, 'hero_image')}
             className="text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-2xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
           />
           {isUploading === 'hero_image' && <span className="text-2xs text-primary animate-pulse">Mengunggah...</span>}
         </div>
+        <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
         <div className="text-xs text-muted">URL Aktif: <code className="bg-background px-1.5 py-0.5 rounded text-primary text-2xs">{heroImage}</code></div>
       </div>
 
@@ -157,10 +167,11 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
             <span className="text-3xs font-semibold text-muted uppercase">Logo 1 (Pemprov)</span>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'logo_1')}
               className="w-full text-2xs"
             />
+            <p className="text-5xs text-muted/70 mt-1">JPG/PNG (Maks 500KB)</p>
             <div className="w-12 h-12 p-1 border border-card-border rounded bg-white mt-1">
               <img src={logo1} alt="Logo 1 Preview" className="w-full h-full object-contain" />
             </div>
@@ -171,10 +182,11 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
             <span className="text-3xs font-semibold text-muted uppercase">Logo 2 (Tentang Itah)</span>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'logo_2')}
               className="w-full text-2xs"
             />
+            <p className="text-5xs text-muted/70 mt-1">JPG/PNG (Maks 500KB)</p>
             <div className="w-12 h-12 p-1 border border-card-border rounded bg-white mt-1">
               <img src={logo2} alt="Logo 2 Preview" className="w-full h-full object-contain" />
             </div>
@@ -185,10 +197,11 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
             <span className="text-3xs font-semibold text-muted uppercase">Logo 3 (Pendidikan)</span>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'logo_3')}
               className="w-full text-2xs"
             />
+            <p className="text-5xs text-muted/70 mt-1">JPG/PNG (Maks 500KB)</p>
             <div className="w-12 h-12 p-1 border border-card-border rounded bg-white mt-1">
               <img src={logo3} alt="Logo 3 Preview" className="w-full h-full object-contain" />
             </div>

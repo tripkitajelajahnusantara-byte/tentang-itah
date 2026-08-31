@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# agents configuration
+.agents/
+
+# local temporary dev files
+/public/uploads/*
+/scratch/
+/ssh_url.txt
+/serveo_url.txt
+/ssh_tunnel_output.log

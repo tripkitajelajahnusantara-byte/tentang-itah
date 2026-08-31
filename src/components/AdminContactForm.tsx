@@ -11,10 +11,10 @@ interface AdminContactFormProps {
 export default function AdminContactForm({ initialData }: AdminContactFormProps) {
   const [email, setEmail] = useState(initialData.email);
   const [phone, setPhone] = useState(initialData.phone || '');
-  const [address, setAddress] = useState(initialData.address);
   const [instagram, setInstagram] = useState(initialData.instagram || '');
   const [facebook, setFacebook] = useState(initialData.facebook || '');
   const [twitter, setTwitter] = useState(initialData.twitter || '');
+  const [dekranasda, setDekranasda] = useState(initialData.dekranasda_kalteng || '');
   const [aboutUs, setAboutUs] = useState(initialData.about_us || '');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,8 +23,8 @@ export default function AdminContactForm({ initialData }: AdminContactFormProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !address) {
-      setError('Email dan alamat fisik wajib diisi');
+    if (!email) {
+      setError('Email wajib diisi');
       return;
     }
 
@@ -36,10 +36,11 @@ export default function AdminContactForm({ initialData }: AdminContactFormProps)
       await updateContactAction({
         email,
         phone: phone || undefined,
-        address,
+        address: '',
         instagram: instagram || undefined,
         facebook: facebook || undefined,
         twitter: twitter || undefined,
+        dekranasda_kalteng: dekranasda || undefined,
         about_us: aboutUs || undefined
       });
       setSuccess(true);
@@ -91,20 +92,9 @@ export default function AdminContactForm({ initialData }: AdminContactFormProps)
         </div>
       </div>
 
-      {/* Address */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Alamat Sekretariat Pengelola *</label>
-        <textarea
-          required
-          rows={3}
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all resize-none"
-        />
-      </div>
 
       {/* Grid: Social media */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-card-border/40 pt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 border-t border-card-border/40 pt-4">
         <div className="space-y-1.5">
           <label className="text-2xs font-bold text-foreground/80 uppercase tracking-wider block">Instagram Handle</label>
           <input
@@ -134,6 +124,17 @@ export default function AdminContactForm({ initialData }: AdminContactFormProps)
             placeholder="@nama.akun"
             value={twitter}
             onChange={(e) => setTwitter(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-card-border bg-background text-foreground text-sm focus:outline-none"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-2xs font-bold text-foreground/80 uppercase tracking-wider block">Dekranasda Kalteng IG</label>
+          <input
+            type="text"
+            placeholder="@nama.akun"
+            value={dekranasda}
+            onChange={(e) => setDekranasda(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-card-border bg-background text-foreground text-sm focus:outline-none"
           />
         </div>
