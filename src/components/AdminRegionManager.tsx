@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Region } from '@/lib/db';
 import { addRegionAction, updateRegionAction, deleteRegionAction } from '@/app/actions';
 
@@ -24,6 +24,8 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -77,6 +79,21 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
       return;
     }
 
+    if (name.length > 100) {
+      setError('Nama kabupaten/kota maksimal 100 karakter');
+      return;
+    }
+
+    if (locationInfo.length > 100) {
+      setError('Lokasi/bagian provinsi maksimal 100 karakter');
+      return;
+    }
+
+    if (description.length > 1000) {
+      setError('Deskripsi kebudayaan & geografis maksimal 1000 karakter');
+      return;
+    }
+
     const slugRegex = /^[a-z0-9-]+$/;
     if (!slugRegex.test(id)) {
       setError('ID Slug Daerah hanya boleh berisi huruf kecil, angka, dan tanda hubung (-). Tanpa spasi atau karakter spesial.');
@@ -121,6 +138,7 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
       setDescription('');
       setLocationInfo('');
       setImageUrl('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
       setError(err.message || 'Gagal menyimpan wilayah');
     } finally {
@@ -135,16 +153,16 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
     setDescription(reg.description);
     setLocationInfo(reg.location_info);
     setImageUrl(reg.image_url || '');
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus wilayah/kabupaten ini?')) return;
+    if (!confirm('Apakah Anda yakin ingin menghapus wilayah ini?')) return;
     try {
-      const ok = await deleteRegionAction(id);
-      if (ok) {
-        setRegions(regions.filter(r => r.id !== id));
-        showSuccess('Wilayah berhasil dihapus');
-      }
+      await deleteRegionAction(id);
+      setRegions(regions.filter(r => r.id !== id));
+      showSuccess('Wilayah berhasil dihapus');
     } catch (err: any) {
       setError(err.message || 'Gagal menghapus wilayah');
     }
@@ -157,15 +175,26 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
     setDescription('');
     setLocationInfo('');
     setImageUrl('');
+    setError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="space-y-8">
+      {/* Header Info */}
+      <div className="space-y-1">
+        <h2 className="font-serif text-2xl font-bold text-foreground">Kelola Jelajah Daerah</h2>
+        <p className="text-xs text-muted">
+          Sunting deskripsi kebudayaan, potensi kerajinan, dan foto cagar alam untuk 13 kabupaten dan 1 kota di Kalimantan Tengah.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
       {/* Form Column */}
       <div className="lg:col-span-5 bg-card-bg border border-card-border/60 p-6 rounded-2xl shadow-sm space-y-4">
         <h3 className="font-serif text-base font-bold text-foreground">
-          {editingId ? 'Sunting Informasi Daerah' : 'Tambah Daerah Baru'}
+          {editingId ? 'Sunting Data Wilayah' : 'Tambah Daerah Baru'}
         </h3>
 
         {success && (
@@ -182,10 +211,14 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">ID Slug Daerah *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">ID Slug Daerah *</label>
+              <span className="text-4xs text-muted/60">{id.length}/50</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={50}
               placeholder="Contoh: baritoutara, kotawaringinbarat"
               value={id}
               onChange={(e) => setId(e.target.value)}
@@ -194,10 +227,14 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Lengkap Kabupaten/Kota *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Lengkap Kabupaten/Kota *</label>
+              <span className="text-4xs text-muted/60">{name.length}/100</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: Kabupaten Barito Utara"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -206,10 +243,14 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Lokasi / Bagian Provinsi *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Lokasi / Bagian Provinsi *</label>
+              <span className="text-4xs text-muted/60">{locationInfo.length}/100</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: Bagian Timur Kalteng"
               value={locationInfo}
               onChange={(e) => setLocationInfo(e.target.value)}
@@ -218,10 +259,14 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Kebudayaan & Geografis *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Kebudayaan & Geografis *</label>
+              <span className="text-4xs text-muted/60">{description.length}/1000</span>
+            </div>
             <textarea
               required
               rows={6}
+              maxLength={1000}
               placeholder="Jelaskan karakteristik cagar alam, industri kerajinan khas, atau jejak kebudayaan daerah..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -232,6 +277,7 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
           <div className="space-y-2 border-t border-card-border/40 pt-4">
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Daerah (Opsional)</label>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg"
               onChange={handleFileUpload}
@@ -241,9 +287,21 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
             <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
-              <div className="flex gap-2 items-center mt-2">
-                <img src={imageUrl} alt="Reg Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
-                <span className="text-3xs text-muted truncate max-w-[120px]">{imageUrl}</span>
+              <div className="flex gap-2 items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+                <div className="flex gap-2 items-center">
+                  <img src={imageUrl} alt="Reg Preview" className="w-10 h-10 object-cover border border-card-border rounded" />
+                  <span className="text-3xs text-muted truncate max-w-[140px]">{imageUrl.startsWith('data:') ? 'Foto Terunggah (Data)' : imageUrl}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageUrl('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+                >
+                  Hapus / Batal
+                </button>
               </div>
             )}
           </div>
@@ -317,6 +375,7 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
         </div>
       </div>
 
+      </div>
     </div>
   );
 }

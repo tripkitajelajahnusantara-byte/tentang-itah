@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { WordOfTheDay } from '@/lib/db';
 import { addWordOfTheDayAction, updateWordOfTheDayAction, deleteWordOfTheDayAction } from '@/app/actions';
 
@@ -24,6 +24,8 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -77,9 +79,19 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
       return;
     }
 
+    if (word.length > 50) {
+      setError('Kata maksimal 50 karakter');
+      return;
+    }
+
+    if (meaning.length > 100) {
+      setError('Arti kata maksimal 100 karakter');
+      return;
+    }
+
     const wordRegex = /^[a-zA-Z\s'-]+$/;
     if (!wordRegex.test(word)) {
-      setError('Kata hanya boleh berisi huruf, spasi, tanda hubung (-), dan tanda petik (\')');
+      setError('Kata hanya boleh mengandung huruf alfabet, tanda petik, tanda hubung, atau spasi');
       return;
     }
 
@@ -101,7 +113,7 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
           display_date: displayDate
         });
         setWords(words.map(w => w.id === editingId ? updated : w));
-        showSuccess('Kosakata harian berhasil diperbarui');
+        showSuccess('Kosakata berhasil diperbarui');
         setEditingId(null);
       } else {
         const newWotd = await addWordOfTheDayAction({
@@ -112,7 +124,7 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
           display_date: displayDate
         });
         setWords([...words, newWotd]);
-        showSuccess('Kosakata harian berhasil ditambahkan');
+        showSuccess('Kosakata berhasil dijadwalkan');
       }
 
       // Reset
@@ -121,6 +133,7 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
       setLanguageName('Dayak Ngaju');
       setAudioUrl('');
       setDisplayDate(new Date().toISOString().split('T')[0]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
       setError(err.message || 'Gagal menyimpan kosakata');
     } finally {
@@ -135,6 +148,8 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
     setLanguageName(wotd.language_name);
     setAudioUrl(wotd.audio_url || '');
     setDisplayDate(wotd.display_date);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
@@ -215,10 +230,14 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Arti Terjemahan *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Arti Terjemahan *</label>
+              <span className="text-4xs text-muted/60">{meaning.length}/100</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: Air"
               value={meaning}
               onChange={(e) => setMeaning(e.target.value)}
@@ -229,6 +248,7 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
           <div className="space-y-2 border-t border-card-border/40 pt-4">
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Unggah Audio Pelafalan (Opsional)</label>
             <input
+              ref={fileInputRef}
               type="file"
               accept="audio/mpeg,audio/mp3"
               onChange={handleAudioUpload}
@@ -238,9 +258,21 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
             <p className="text-4xs text-muted/70 mt-1">Format: MP3 saja (Maksimal 5 MB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah audio...</p>}
             {audioUrl && (
-              <div className="text-3xs text-muted flex items-center gap-1 mt-1">
-                <span className="font-semibold text-secondary">Audio aktif:</span>
-                <span className="truncate max-w-[120px]">{audioUrl}</span>
+              <div className="flex gap-2 items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+                <div className="text-3xs text-muted flex items-center gap-1">
+                  <span className="font-semibold text-secondary">Audio:</span>
+                  <span className="truncate max-w-[140px]">{audioUrl.startsWith('data:') ? 'Audio Terunggah (Data)' : audioUrl}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAudioUrl('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+                >
+                  Hapus / Batal
+                </button>
               </div>
             )}
           </div>

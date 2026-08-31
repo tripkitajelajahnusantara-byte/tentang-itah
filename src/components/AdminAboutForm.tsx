@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { About } from '@/lib/db';
 import { updateAboutAction } from '@/app/actions';
 
@@ -17,6 +17,8 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,8 +61,23 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (/[<>]/.test(title) || /[<>]/.test(content)) {
-      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+    if (!title || !content) {
+      setError('Judul dan konten halaman wajib diisi');
+      return;
+    }
+
+    if (title.length > 100) {
+      setError('Judul halaman maksimal 100 karakter');
+      return;
+    }
+
+    if (content.length > 3000) {
+      setError('Konten halaman maksimal 3000 karakter');
+      return;
+    }
+
+    if (/[<>]/.test(title)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom judul');
       return;
     }
 
@@ -77,7 +94,7 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Gagal diperbarui');
+      setError(err.message || 'Gagal memperbarui data tentang');
     } finally {
       setIsSubmitting(false);
     }
@@ -101,10 +118,14 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
 
       {/* Title */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Judul Halaman</label>
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Judul Halaman</label>
+          <span className="text-4xs text-muted/60">{title.length}/100</span>
+        </div>
         <input
           type="text"
           required
+          maxLength={100}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all"
@@ -113,9 +134,13 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
 
       {/* Content */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Konten Halaman Tentang</label>
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Konten Halaman Tentang</label>
+          <span className="text-4xs text-muted/60">{content.length}/3000</span>
+        </div>
         <textarea
           required
+          maxLength={3000}
           rows={10}
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -128,6 +153,7 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
         <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Foto Sampul / Banner</label>
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/jpg"
             onChange={handleFileUpload}
@@ -138,12 +164,26 @@ export default function AdminAboutForm({ initialData }: AdminAboutFormProps) {
         </div>
         <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
         
-        <div className="flex gap-4 items-center mt-2">
-          <div className="w-24 aspect-[4/3] border border-card-border rounded overflow-hidden">
-            <img src={imageUrl} alt="About Preview" className="w-full h-full object-cover" />
+        {imageUrl && (
+          <div className="flex items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+            <div className="flex gap-4 items-center">
+              <div className="w-20 aspect-[4/3] border border-card-border rounded overflow-hidden">
+                <img src={imageUrl} alt="About Preview" className="w-full h-full object-cover" />
+              </div>
+              <span className="text-3xs text-muted truncate max-w-[180px]">{imageUrl.startsWith('data:') ? 'Foto Terunggah (Data)' : imageUrl}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setImageUrl('');
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              }}
+              className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+            >
+              Hapus / Reset
+            </button>
           </div>
-          <div className="text-xs text-muted">URL Aktif: <code className="bg-background px-1.5 py-0.5 rounded text-primary text-2xs">{imageUrl}</code></div>
-        </div>
+        )}
       </div>
 
       {/* Save Button */}

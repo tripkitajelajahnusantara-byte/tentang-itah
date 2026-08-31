@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Folklore } from '@/lib/db';
 import { addFolkloreAction, updateFolkloreAction, deleteFolkloreAction } from '@/app/actions';
 
@@ -24,6 +24,9 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -86,6 +89,21 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
       return;
     }
 
+    if (title.length > 100) {
+      setError('Judul cerita maksimal 100 karakter');
+      return;
+    }
+
+    if (region.length > 100) {
+      setError('Asal daerah maksimal 100 karakter');
+      return;
+    }
+
+    if (content.length > 2000) {
+      setError('Isi narasi cerita maksimal 2000 karakter');
+      return;
+    }
+
     if (/[<>]/.test(title) || /[<>]/.test(content) || /[<>]/.test(region)) {
       setError('Karakter < dan > tidak diperbolehkan pada kolom input');
       return;
@@ -124,6 +142,8 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
       setRegion('');
       setImageUrl('');
       setAudioUrl('');
+      if (imageInputRef.current) imageInputRef.current.value = '';
+      if (audioInputRef.current) audioInputRef.current.value = '';
     } catch (err: any) {
       setError(err.message || 'Gagal menyimpan cerita rakyat');
     } finally {
@@ -138,6 +158,8 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
     setRegion(folk.region);
     setImageUrl(folk.image_url || '');
     setAudioUrl(folk.audio_url || '');
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
@@ -197,10 +219,14 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Asal Daerah Cerita *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Asal Daerah Cerita *</label>
+              <span className="text-4xs text-muted/60">{region.length}/100</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: Barito Selatan"
               value={region}
               onChange={(e) => setRegion(e.target.value)}
@@ -209,10 +235,14 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Isi Narasi Cerita *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Isi Narasi Cerita *</label>
+              <span className="text-4xs text-muted/60">{content.length}/2000</span>
+            </div>
             <textarea
               required
               rows={6}
+              maxLength={2000}
               placeholder="Tuliskan kisah lengkap dongeng di sini..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -223,6 +253,7 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
           <div className="space-y-2 border-t border-card-border/40 pt-4">
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Ilustrasi Cerita (Opsional)</label>
             <input
+              ref={imageInputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'image_url')}
@@ -232,9 +263,21 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
             <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading === 'image_url' && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
-              <div className="flex gap-2 items-center mt-2">
-                <img src={imageUrl} alt="Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
-                <span className="text-3xs text-muted truncate max-w-[120px]">{imageUrl}</span>
+              <div className="flex gap-2 items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+                <div className="flex gap-2 items-center">
+                  <img src={imageUrl} alt="Preview" className="w-10 h-10 object-cover border border-card-border rounded" />
+                  <span className="text-3xs text-muted truncate max-w-[140px]">{imageUrl.startsWith('data:') ? 'Foto Terunggah (Data)' : imageUrl}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageUrl('');
+                    if (imageInputRef.current) imageInputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+                >
+                  Hapus / Batal
+                </button>
               </div>
             )}
           </div>
@@ -242,6 +285,7 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
           <div className="space-y-2 border-t border-card-border/40 pt-2">
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Audio Narasi Dongeng (Opsional)</label>
             <input
+              ref={audioInputRef}
               type="file"
               accept="audio/mpeg,audio/mp3"
               onChange={(e) => handleFileUpload(e, 'audio_url')}
@@ -251,9 +295,21 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
             <p className="text-4xs text-muted/70 mt-1">Format: MP3 (Maksimal 5 MB)</p>
             {isUploading === 'audio_url' && <p className="text-3xs text-primary animate-pulse">Mengunggah audio...</p>}
             {audioUrl && (
-              <div className="text-3xs text-muted flex items-center gap-1 mt-1">
-                <span className="font-semibold text-secondary">Audio tersedia:</span>
-                <span className="truncate max-w-[120px]">{audioUrl}</span>
+              <div className="flex gap-2 items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+                <div className="text-3xs text-muted flex items-center gap-1">
+                  <span className="font-semibold text-secondary">Audio:</span>
+                  <span className="truncate max-w-[140px]">{audioUrl.startsWith('data:') ? 'Audio Terunggah (Data)' : audioUrl}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAudioUrl('');
+                    if (audioInputRef.current) audioInputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+                >
+                  Hapus / Batal
+                </button>
               </div>
             )}
           </div>

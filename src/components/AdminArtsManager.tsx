@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ArtsCulture } from '@/lib/db';
 import { addArtsCultureAction, updateArtsCultureAction, deleteArtsCultureAction } from '@/app/actions';
 
@@ -25,6 +25,8 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -74,7 +76,27 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !description || !originRegion || !meaning) {
-      setError('Nama, deskripsi, asal daerah, dan makna wajib diisi');
+      setError('Semua kolom bertanda bintang (*) wajib diisi');
+      return;
+    }
+
+    if (name.length > 100) {
+      setError('Nama kesenian maksimal 100 karakter');
+      return;
+    }
+
+    if (originRegion.length > 100) {
+      setError('Asal daerah maksimal 100 karakter');
+      return;
+    }
+
+    if (meaning.length > 500) {
+      setError('Makna filosofis maksimal 500 karakter');
+      return;
+    }
+
+    if (description.length > 1000) {
+      setError('Deskripsi kesenian maksimal 1000 karakter');
       return;
     }
 
@@ -97,7 +119,7 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           image_url: imageUrl || undefined
         });
         setArts(arts.map(a => a.id === editingId ? updated : a));
-        showSuccess('Kesenian berhasil diperbarui');
+        showSuccess('Data kesenian berhasil diperbarui');
         setEditingId(null);
       } else {
         const newArt = await addArtsCultureAction({
@@ -109,7 +131,7 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           image_url: imageUrl || undefined
         });
         setArts([...arts, newArt]);
-        showSuccess('Kesenian berhasil ditambahkan');
+        showSuccess('Data kesenian berhasil ditambahkan');
       }
 
       // Reset
@@ -118,8 +140,9 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
       setOriginRegion('');
       setMeaning('');
       setImageUrl('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
-      setError(err.message || 'Gagal menyimpan kesenian');
+      setError(err.message || 'Gagal menyimpan data');
     } finally {
       setIsSubmitting(false);
     }
@@ -133,6 +156,8 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
     setOriginRegion(art.origin_region);
     setMeaning(art.meaning);
     setImageUrl(art.image_url || '');
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
@@ -219,10 +244,46 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Filosofi & Makna Kebudayaan *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Karya Seni / Tarian *</label>
+              <span className="text-4xs text-muted/60">{name.length}/100</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={100}
+              placeholder="Contoh: Tari Mandau, Garantung"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Asal Wilayah/Kabupaten *</label>
+              <span className="text-4xs text-muted/60">{originRegion.length}/100</span>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={100}
+              placeholder="Contoh: Barito Selatan"
+              value={originRegion}
+              onChange={(e) => setOriginRegion(e.target.value)}
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Filosofi & Makna Kebudayaan *</label>
+              <span className="text-4xs text-muted/60">{meaning.length}/500</span>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={500}
               placeholder="Jelaskan secara singkat makna dibalik kesenian ini..."
               value={meaning}
               onChange={(e) => setMeaning(e.target.value)}
@@ -231,10 +292,14 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Lengkap Kesenian *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Lengkap Kesenian *</label>
+              <span className="text-4xs text-muted/60">{description.length}/1000</span>
+            </div>
             <textarea
               required
               rows={4}
+              maxLength={1000}
               placeholder="Tuliskan latar belakang sejarah, alat/bahan yang digunakan, tata cara pertunjukan..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -245,6 +310,7 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           <div className="space-y-2 border-t border-card-border/40 pt-4">
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Karya Seni (Opsional)</label>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg"
               onChange={handleFileUpload}
@@ -254,9 +320,21 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
             <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
-              <div className="flex gap-2 items-center mt-2">
-                <img src={imageUrl} alt="Art Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
-                <span className="text-3xs text-muted truncate max-w-[120px]">{imageUrl}</span>
+              <div className="flex gap-2 items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+                <div className="flex gap-2 items-center">
+                  <img src={imageUrl} alt="Art Preview" className="w-10 h-10 object-cover border border-card-border rounded" />
+                  <span className="text-3xs text-muted truncate max-w-[140px]">{imageUrl.startsWith('data:') ? 'Foto Terunggah (Data)' : imageUrl}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageUrl('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+                >
+                  Hapus / Batal
+                </button>
               </div>
             )}
           </div>

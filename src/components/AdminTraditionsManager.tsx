@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Tradition } from '@/lib/db';
 import { addTraditionAction, updateTraditionAction, deleteTraditionAction } from '@/app/actions';
 
@@ -25,6 +25,8 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -74,7 +76,32 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !description || !location || !purpose || !meaning) {
-      setError('Seluruh kolom wajib diisi');
+      setError('Semua kolom bertanda bintang (*) wajib diisi');
+      return;
+    }
+
+    if (name.length > 100) {
+      setError('Nama upacara/tradisi maksimal 100 karakter');
+      return;
+    }
+
+    if (location.length > 100) {
+      setError('Lokasi pelaksanaan maksimal 100 karakter');
+      return;
+    }
+
+    if (purpose.length > 300) {
+      setError('Tujuan & fungsi ritual maksimal 300 karakter');
+      return;
+    }
+
+    if (meaning.length > 500) {
+      setError('Makna filosofis tradisi maksimal 500 karakter');
+      return;
+    }
+
+    if (description.length > 1000) {
+      setError('Deskripsi detail kegiatan maksimal 1000 karakter');
       return;
     }
 
@@ -88,9 +115,16 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
 
     try {
       if (editingId) {
-        const updated = await updateTransition(editingId);
+        const updated = await updateTraditionAction(editingId, {
+          name,
+          description,
+          location,
+          purpose,
+          meaning,
+          image_url: imageUrl || undefined
+        });
         setTrads(trads.map(t => t.id === editingId ? updated : t));
-        showSuccess('Tradisi adat berhasil diperbarui');
+        showSuccess('Data tradisi berhasil diperbarui');
         setEditingId(null);
       } else {
         const newTrad = await addTraditionAction({
@@ -102,7 +136,7 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
           image_url: imageUrl || undefined
         });
         setTrads([...trads, newTrad]);
-        showSuccess('Tradisi adat berhasil ditambahkan');
+        showSuccess('Data tradisi baru berhasil ditambahkan');
       }
 
       // Reset
@@ -112,22 +146,12 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
       setPurpose('');
       setMeaning('');
       setImageUrl('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
       setError(err.message || 'Gagal menyimpan tradisi');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const updateTransition = async (id: string) => {
-    return await updateTraditionAction(id, {
-      name,
-      description,
-      location,
-      purpose,
-      meaning,
-      image_url: imageUrl || undefined
-    });
   };
 
   const handleEdit = (trad: Tradition) => {
@@ -138,6 +162,8 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
     setPurpose(trad.purpose);
     setMeaning(trad.meaning);
     setImageUrl(trad.image_url || '');
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
@@ -222,10 +248,62 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Makna Filosofis Tradisi *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Upacara / Tradisi *</label>
+              <span className="text-4xs text-muted/60">{name.length}/100</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={100}
+              placeholder="Contoh: Upacara Tiwah"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Lokasi Pelaksanaan *</label>
+              <span className="text-4xs text-muted/60">{location.length}/100</span>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={100}
+              placeholder="Contoh: Kabupaten Katingan"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Tujuan & Fungsi Ritual *</label>
+              <span className="text-4xs text-muted/60">{purpose.length}/300</span>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={300}
+              placeholder="Contoh: Mengantarkan arwah leluhur menuju Lewu Tatau..."
+              value={purpose}
+              onChange={(e) => setPurpose(e.target.value)}
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Makna Filosofis Tradisi *</label>
+              <span className="text-4xs text-muted/60">{meaning.length}/500</span>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={500}
               placeholder="Makna adat atau nilai kebersamaan..."
               value={meaning}
               onChange={(e) => setMeaning(e.target.value)}
@@ -234,10 +312,14 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Detail Kegiatan *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Detail Kegiatan *</label>
+              <span className="text-4xs text-muted/60">{description.length}/1000</span>
+            </div>
             <textarea
               required
               rows={5}
+              maxLength={1000}
               placeholder="Jelaskan proses pelaksanaan adat dari awal hingga akhir..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -248,6 +330,7 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
           <div className="space-y-2 border-t border-card-border/40 pt-4">
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Dokumentasi (Opsional)</label>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg"
               onChange={handleFileUpload}
@@ -257,9 +340,21 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
             <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
-              <div className="flex gap-2 items-center mt-2">
-                <img src={imageUrl} alt="Trad Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
-                <span className="text-3xs text-muted truncate max-w-[120px]">{imageUrl}</span>
+              <div className="flex gap-2 items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+                <div className="flex gap-2 items-center">
+                  <img src={imageUrl} alt="Trad Preview" className="w-10 h-10 object-cover border border-card-border rounded" />
+                  <span className="text-3xs text-muted truncate max-w-[140px]">{imageUrl.startsWith('data:') ? 'Foto Terunggah (Data)' : imageUrl}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageUrl('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+                >
+                  Hapus / Batal
+                </button>
               </div>
             )}
           </div>

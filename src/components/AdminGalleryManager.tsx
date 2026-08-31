@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Gallery } from '@/lib/db';
 import { addGalleryAction, updateGalleryAction, deleteGalleryAction } from '@/app/actions';
 
@@ -23,6 +23,8 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -52,7 +54,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
         return;
       }
     } else {
-      setError('Format berkas tidak didukung. Hanya gambar (JPG, JPEG, PNG) dan video (MP4, WEBM, MOV) yang diperbolehkan');
+      setError('Format berkas tidak didukung');
       return;
     }
 
@@ -71,13 +73,13 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
       const data = await response.json();
       if (response.ok && data.url) {
         setMediaUrl(data.url);
-        showSuccess('File media berhasil diunggah');
+        showSuccess('Media berhasil diunggah');
       } else {
-        setError(data.error || 'Gagal mengunggah berkas');
+        setError(data.error || 'Gagal mengunggah media');
       }
     } catch (err) {
       console.error(err);
-      setError('Kesalahan koneksi saat mengunggah berkas');
+      setError('Kesalahan koneksi saat mengunggah media');
     } finally {
       setIsUploading(false);
     }
@@ -92,7 +94,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !mediaUrl) {
-      setError('Judul dan file/link media wajib diisi');
+      setError('Judul dan berkas media wajib diisi');
       return;
     }
 
@@ -101,7 +103,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
       return;
     }
 
-    if (description && description.length > 500) {
+    if (description.length > 500) {
       setError('Keterangan media maksimal 500 karakter');
       return;
     }
@@ -130,8 +132,8 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
           media_url: mediaUrl,
           description: description || undefined
         });
-        setItems(items.map(i => i.id === editingId ? updated : i));
-        showSuccess('Item galeri berhasil diperbarui');
+        setItems(items.map(item => item.id === editingId ? updated : item));
+        showSuccess('Media galeri berhasil diperbarui');
         setEditingId(null);
       } else {
         const newItem = await addGalleryAction({
@@ -141,7 +143,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
           description: description || undefined
         });
         setItems([...items, newItem]);
-        showSuccess('Item galeri berhasil ditambahkan');
+        showSuccess('Media galeri berhasil ditambahkan');
       }
 
       // Reset
@@ -149,8 +151,9 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
       setType('image');
       setMediaUrl('');
       setDescription('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
-      setError(err.message || 'Gagal menyimpan item galeri');
+      setError(err.message || 'Gagal menyimpan media');
     } finally {
       setIsSubmitting(false);
     }
@@ -162,6 +165,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
     setType(item.type);
     setMediaUrl(item.media_url);
     setDescription(item.description || '');
+    setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -171,6 +175,8 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
     setType('image');
     setMediaUrl('');
     setDescription('');
+    setError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDelete = async (id: string) => {
@@ -266,6 +272,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
               <>
                 <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Unggah Berkas Gambar *</label>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/jpeg,image/png,image/jpg"
                   onChange={handleFileUpload}
@@ -291,20 +298,32 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
             )}
 
             {mediaUrl && (
-              <div className="flex gap-2 items-center mt-2">
-                {type === 'image' ? (
-                  <img src={mediaUrl} alt="Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
-                ) : (
-                  (() => {
-                    const ytId = getYouTubeId(mediaUrl);
-                    return ytId ? (
-                      <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} alt="YT Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
-                    ) : (
-                      <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white text-3xs font-bold">🎬 Video</div>
-                    );
-                  })()
-                )}
-                <span className="text-3xs text-muted truncate max-w-[120px]">{mediaUrl}</span>
+              <div className="flex gap-2 items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+                <div className="flex gap-2 items-center">
+                  {type === 'image' ? (
+                    <img src={mediaUrl} alt="Preview" className="w-10 h-10 object-cover border border-card-border rounded" />
+                  ) : (
+                    (() => {
+                      const ytId = getYouTubeId(mediaUrl);
+                      return ytId ? (
+                        <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} alt="YT Preview" className="w-10 h-10 object-cover border border-card-border rounded" />
+                      ) : (
+                        <div className="w-10 h-10 bg-black rounded flex items-center justify-center text-white text-3xs font-bold">🎬 Video</div>
+                      );
+                    })()
+                  )}
+                  <span className="text-3xs text-muted truncate max-w-[140px]">{mediaUrl.startsWith('data:') ? 'Foto Terunggah (Data)' : mediaUrl}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMediaUrl('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all cursor-pointer"
+                >
+                  Hapus / Batal
+                </button>
               </div>
             )}
           </div>

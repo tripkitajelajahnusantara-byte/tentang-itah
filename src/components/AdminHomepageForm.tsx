@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Homepage } from '@/lib/db';
 import { updateHomepageAction } from '@/app/actions';
 
@@ -21,6 +21,11 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  const heroInputRef = useRef<HTMLInputElement | null>(null);
+  const logo1InputRef = useRef<HTMLInputElement | null>(null);
+  const logo2InputRef = useRef<HTMLInputElement | null>(null);
+  const logo3InputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const file = e.target.files?.[0];
@@ -58,7 +63,7 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
       }
     } catch (err) {
       console.error(err);
-      setError('Kesalahan koneksi saat mengunggah berkas');
+      setError('Terjadi kesalahan koneksi saat mengunggah berkas.');
     } finally {
       setIsUploading(null);
     }
@@ -66,8 +71,28 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!heroTitle || !heroSubtitle || !ctaText) {
+      setError('Semua kolom teks wajib diisi');
+      return;
+    }
+
+    if (heroTitle.length > 100) {
+      setError('Judul banner hero maksimal 100 karakter');
+      return;
+    }
+
+    if (heroSubtitle.length > 300) {
+      setError('Sub-judul banner hero maksimal 300 karakter');
+      return;
+    }
+
+    if (ctaText.length > 50) {
+      setError('Teks tombol CTA maksimal 50 karakter');
+      return;
+    }
+
     if (/[<>]/.test(heroTitle) || /[<>]/.test(heroSubtitle) || /[<>]/.test(ctaText)) {
-      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      setError('Karakter < dan > tidak diperbolehkan pada kolom teks');
       return;
     }
 
@@ -88,7 +113,7 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Gagal memperbarui beranda');
+      setError(err.message || 'Gagal memperbarui data beranda.');
     } finally {
       setIsSubmitting(false);
     }
@@ -112,10 +137,14 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
 
       {/* Hero Title */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Headline Banner Utama</label>
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Judul Banner Hero</label>
+          <span className="text-4xs text-muted/60">{heroTitle.length}/100</span>
+        </div>
         <input
           type="text"
           required
+          maxLength={100}
           value={heroTitle}
           onChange={(e) => setHeroTitle(e.target.value)}
           className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all"
@@ -124,9 +153,13 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
 
       {/* Hero Subtitle */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Deskripsi Headline (Sub-Headline)</label>
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Sub-Judul Banner Hero</label>
+          <span className="text-4xs text-muted/60">{heroSubtitle.length}/300</span>
+        </div>
         <textarea
           required
+          maxLength={300}
           rows={3}
           value={heroSubtitle}
           onChange={(e) => setHeroSubtitle(e.target.value)}
@@ -136,10 +169,14 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
 
       {/* CTA Text */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Teks Tombol / CTA (Call to Action)</label>
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Teks Tombol / CTA (Call to Action)</label>
+          <span className="text-4xs text-muted/60">{ctaText.length}/50</span>
+        </div>
         <input
           type="text"
           required
+          maxLength={50}
           value={ctaText}
           onChange={(e) => setCtaText(e.target.value)}
           className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-all"
@@ -151,6 +188,7 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
         <label className="text-xs font-bold text-foreground/80 uppercase tracking-wider block">Gambar Banner Hero</label>
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <input
+            ref={heroInputRef}
             type="file"
             accept="image/jpeg,image/png,image/jpg"
             onChange={(e) => handleFileUpload(e, 'hero_image')}
@@ -159,7 +197,24 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
           {isUploading === 'hero_image' && <span className="text-2xs text-primary animate-pulse">Mengunggah...</span>}
         </div>
         <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
-        <div className="text-xs text-muted">URL Aktif: <code className="bg-background px-1.5 py-0.5 rounded text-primary text-2xs">{heroImage}</code></div>
+        {heroImage && (
+          <div className="flex items-center justify-between bg-card-border/20 p-2 rounded-lg mt-2">
+            <div className="flex items-center gap-2">
+              <img src={heroImage} alt="Hero Preview" className="w-12 h-8 object-cover rounded border border-card-border" />
+              <span className="text-3xs text-muted truncate max-w-[200px]">{heroImage.startsWith('data:') ? 'Foto Terunggah (Data)' : heroImage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setHeroImage('');
+                if (heroInputRef.current) heroInputRef.current.value = '';
+              }}
+              className="px-2 py-1 text-3xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all"
+            >
+              Hapus / Reset
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Logos grid section */}
@@ -171,45 +226,90 @@ export default function AdminHomepageForm({ initialData }: AdminHomepageFormProp
           <div className="space-y-2 p-4 border border-card-border rounded-xl bg-background/50">
             <span className="text-3xs font-semibold text-muted uppercase">Logo 1 (Pemprov)</span>
             <input
+              ref={logo1InputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'logo_1')}
               className="w-full text-2xs"
             />
             <p className="text-5xs text-muted/70 mt-1">JPG/PNG (Maks 500KB)</p>
-            <div className="w-12 h-12 p-1 border border-card-border rounded bg-white mt-1">
-              <img src={logo1} alt="Logo 1 Preview" className="w-full h-full object-contain" />
-            </div>
+            {logo1 && (
+              <div className="flex items-center justify-between mt-1">
+                <div className="w-12 h-12 p-1 border border-card-border rounded bg-white">
+                  <img src={logo1} alt="Logo 1 Preview" className="w-full h-full object-contain" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogo1('');
+                    if (logo1InputRef.current) logo1InputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-4xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all"
+                >
+                  Hapus
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Logo 2 */}
           <div className="space-y-2 p-4 border border-card-border rounded-xl bg-background/50">
             <span className="text-3xs font-semibold text-muted uppercase">Logo 2 (Tentang Itah)</span>
             <input
+              ref={logo2InputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'logo_2')}
               className="w-full text-2xs"
             />
             <p className="text-5xs text-muted/70 mt-1">JPG/PNG (Maks 500KB)</p>
-            <div className="w-12 h-12 p-1 border border-card-border rounded bg-white mt-1">
-              <img src={logo2} alt="Logo 2 Preview" className="w-full h-full object-contain" />
-            </div>
+            {logo2 && (
+              <div className="flex items-center justify-between mt-1">
+                <div className="w-12 h-12 p-1 border border-card-border rounded bg-white">
+                  <img src={logo2} alt="Logo 2 Preview" className="w-full h-full object-contain" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogo2('');
+                    if (logo2InputRef.current) logo2InputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-4xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all"
+                >
+                  Hapus
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Logo 3 */}
           <div className="space-y-2 p-4 border border-card-border rounded-xl bg-background/50">
             <span className="text-3xs font-semibold text-muted uppercase">Logo 3 (Pendidikan)</span>
             <input
+              ref={logo3InputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'logo_3')}
               className="w-full text-2xs"
             />
             <p className="text-5xs text-muted/70 mt-1">JPG/PNG (Maks 500KB)</p>
-            <div className="w-12 h-12 p-1 border border-card-border rounded bg-white mt-1">
-              <img src={logo3} alt="Logo 3 Preview" className="w-full h-full object-contain" />
-            </div>
+            {logo3 && (
+              <div className="flex items-center justify-between mt-1">
+                <div className="w-12 h-12 p-1 border border-card-border rounded bg-white">
+                  <img src={logo3} alt="Logo 3 Preview" className="w-full h-full object-contain" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogo3('');
+                    if (logo3InputRef.current) logo3InputRef.current.value = '';
+                  }}
+                  className="px-2 py-1 text-4xs font-semibold rounded bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all"
+                >
+                  Hapus
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
