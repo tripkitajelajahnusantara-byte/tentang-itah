@@ -96,6 +96,16 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
       return;
     }
 
+    if (title.length > 100) {
+      setError('Judul media maksimal 100 karakter');
+      return;
+    }
+
+    if (description && description.length > 500) {
+      setError('Keterangan media maksimal 500 karakter');
+      return;
+    }
+
     if (/[<>]/.test(title) || /[<>]/.test(description)) {
       setError('Karakter < dan > tidak diperbolehkan pada kolom input');
       return;
@@ -152,22 +162,10 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
     setType(item.type);
     setMediaUrl(item.media_url);
     setDescription(item.description || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus item galeri ini?')) return;
-    try {
-      const ok = await deleteGalleryAction(id);
-      if (ok) {
-        setItems(items.filter(i => i.id !== id));
-        showSuccess('Item galeri berhasil dihapus');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Gagal menghapus data');
-    }
-  };
-
-  const cancelEdit = () => {
+  const handleCancelEdit = () => {
     setEditingId(null);
     setTitle('');
     setType('image');
@@ -175,8 +173,28 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
     setDescription('');
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus item galeri ini?')) return;
+    try {
+      await deleteGalleryAction(id);
+      setItems(items.filter(i => i.id !== id));
+      showSuccess('Item galeri berhasil dihapus');
+    } catch (err: any) {
+      setError(err.message || 'Gagal menghapus item galeri');
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="space-y-8">
+      {/* Header Info */}
+      <div className="space-y-1">
+        <h2 className="font-serif text-2xl font-bold text-foreground">Kelola Galeri Media</h2>
+        <p className="text-xs text-muted">
+          Tambahkan foto dokumentasi (JPG/PNG max 500KB) atau video dokumentasi budaya dari tautan YouTube.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
       
       {/* Form Column */}
       <div className="lg:col-span-5 bg-card-bg border border-card-border/60 p-6 rounded-2xl shadow-sm space-y-4">
@@ -198,10 +216,14 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Judul Media *</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Judul Media *</label>
+              <span className="text-4xs text-muted/60">{title.length}/100</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: Upacara Tiwah di Kurun"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -225,9 +247,13 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Keterangan / Kapsi</label>
+            <div className="flex justify-between items-center">
+              <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Keterangan / Kapsi</label>
+              <span className="text-4xs text-muted/60">{description.length}/500</span>
+            </div>
             <textarea
               rows={3}
+              maxLength={500}
               placeholder="Tuliskan keterangan detail foto/video..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -294,7 +320,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
             {editingId && (
               <button
                 type="button"
-                onClick={cancelEdit}
+                onClick={handleCancelEdit}
                 className="px-3 py-2 rounded-lg border border-card-border hover:bg-accent/10 hover:text-accent hover:border-accent text-xs text-muted font-semibold transition-all"
               >
                 Batal
@@ -354,6 +380,7 @@ export default function AdminGalleryManager({ initialItems }: AdminGalleryManage
         </div>
       </div>
 
+      </div>
     </div>
   );
 }

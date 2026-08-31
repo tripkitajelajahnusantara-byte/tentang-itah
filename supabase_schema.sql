@@ -185,3 +185,22 @@ CREATE TABLE IF NOT EXISTS active_sessions (
 INSERT INTO admins (username, password)
 VALUES ('admin@tentangitah.id', 'Kalimantancerah123#')
 ON CONFLICT (username) DO NOTHING;
+
+-- ========================================================
+-- STORAGE BUCKET CONFIGURATION & RLS POLICIES
+-- Run this block in Supabase SQL Editor to fix "new row violates row-level security policy"
+-- ========================================================
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('tentang-itah', 'tentang-itah', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+DROP POLICY IF EXISTS "Public Uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Public Updates" ON storage.objects;
+DROP POLICY IF EXISTS "Public Deletes" ON storage.objects;
+
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'tentang-itah');
+CREATE POLICY "Public Uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'tentang-itah');
+CREATE POLICY "Public Updates" ON storage.objects FOR UPDATE USING (bucket_id = 'tentang-itah');
+CREATE POLICY "Public Deletes" ON storage.objects FOR DELETE USING (bucket_id = 'tentang-itah');
+

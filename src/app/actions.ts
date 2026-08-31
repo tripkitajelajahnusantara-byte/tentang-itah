@@ -411,6 +411,15 @@ export async function addGalleryAction(item: Omit<db.Gallery, 'id'>) {
   if (!(await auth.isAdminAuthenticated())) {
     throw new Error('Unauthorized');
   }
+  if (!item.title || item.title.length > 100) {
+    throw new Error('Judul media wajib diisi dan maksimal 100 karakter');
+  }
+  if (item.description && item.description.length > 500) {
+    throw new Error('Keterangan media maksimal 500 karakter');
+  }
+  if (/[<>]/.test(item.title) || (item.description && /[<>]/.test(item.description))) {
+    throw new Error('Karakter < dan > tidak diperbolehkan');
+  }
   const result = await db.addGallery(item);
   revalidatePath('/galeri');
   return result;
@@ -419,6 +428,15 @@ export async function addGalleryAction(item: Omit<db.Gallery, 'id'>) {
 export async function updateGalleryAction(id: string, updates: Partial<db.Gallery>) {
   if (!(await auth.isAdminAuthenticated())) {
     throw new Error('Unauthorized');
+  }
+  if (updates.title && updates.title.length > 100) {
+    throw new Error('Judul media maksimal 100 karakter');
+  }
+  if (updates.description && updates.description.length > 500) {
+    throw new Error('Keterangan media maksimal 500 karakter');
+  }
+  if ((updates.title && /[<>]/.test(updates.title)) || (updates.description && /[<>]/.test(updates.description))) {
+    throw new Error('Karakter < dan > tidak diperbolehkan');
   }
   const result = await db.updateGallery(id, updates);
   revalidatePath('/galeri');
