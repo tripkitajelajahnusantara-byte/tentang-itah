@@ -34,6 +34,15 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_SIZE = 500 * 1024; // 500KB
+
+    if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
+      setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
+      return;
+    }
+
     setIsUploading(true);
     setError('');
 
@@ -68,12 +77,24 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
       return;
     }
 
+    const slugRegex = /^[a-z0-9-]+$/;
+    if (!slugRegex.test(id)) {
+      setError('ID Slug Daerah hanya boleh berisi huruf kecil, angka, dan tanda hubung (-). Tanpa spasi atau karakter spesial.');
+      return;
+    }
+
+    if (/[<>]/.test(name) || /[<>]/.test(description) || /[<>]/.test(locationInfo)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
     try {
       if (editingId) {
         const updated = await updateRegionAction(editingId, {
+          id: id.toLowerCase().trim(),
           name,
           description,
           location_info: locationInfo,
@@ -165,11 +186,10 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
             <input
               type="text"
               required
-              disabled={Boolean(editingId)}
               placeholder="Contoh: baritoutara, kotawaringinbarat"
               value={id}
               onChange={(e) => setId(e.target.value)}
-              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none disabled:opacity-50"
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
             />
           </div>
 
@@ -213,11 +233,12 @@ export default function AdminRegionManager({ initialRegions }: AdminRegionManage
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Daerah (Opsional)</label>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={handleFileUpload}
               disabled={isUploading}
               className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
             />
+            <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
               <div className="flex gap-2 items-center mt-2">

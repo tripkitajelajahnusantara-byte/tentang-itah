@@ -34,6 +34,15 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
+      setError('Ukuran audio minimal 10 KB dan maksimal 5 MB');
+      return;
+    }
+
     setIsUploading(true);
     setError('');
 
@@ -68,6 +77,17 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
       return;
     }
 
+    const wordRegex = /^[a-zA-Z\s'-]+$/;
+    if (!wordRegex.test(word)) {
+      setError('Kata hanya boleh berisi huruf, spasi, tanda hubung (-), dan tanda petik (\')');
+      return;
+    }
+
+    if (/[<>]/.test(meaning) || /[<>]/.test(languageName)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -98,9 +118,11 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
       // Reset
       setWord('');
       setMeaning('');
+      setLanguageName('Dayak Ngaju');
       setAudioUrl('');
+      setDisplayDate(new Date().toISOString().split('T')[0]);
     } catch (err: any) {
-      setError(err.message || 'Gagal menyimpan kosakata harian (catatan: tanggal tampil harus unik)');
+      setError(err.message || 'Gagal menyimpan kosakata');
     } finally {
       setIsSubmitting(false);
     }
@@ -208,11 +230,12 @@ export default function AdminWordManager({ initialWords }: AdminWordManagerProps
             <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Unggah Audio Pelafalan (Opsional)</label>
             <input
               type="file"
-              accept="audio/*"
+              accept="audio/mpeg,audio/mp3"
               onChange={handleAudioUpload}
               disabled={isUploading}
               className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
             />
+            <p className="text-4xs text-muted/70 mt-1">Format: MP3 saja (Maksimal 5 MB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah audio...</p>}
             {audioUrl && (
               <div className="text-3xs text-muted flex items-center gap-1 mt-1">

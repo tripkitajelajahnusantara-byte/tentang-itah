@@ -1,13 +1,30 @@
--- SUPABASE DATABASE SCHEMA FOR TENTANG ITAH
+-- SUPABASE DATABASE SCHEMA FOR TENTANG ITAH (UPDATED FOR TEXT IDs)
+
+-- Drop existing tables first to clean up the UUID fields
+DROP TABLE IF EXISTS active_sessions CASCADE;
+DROP TABLE IF EXISTS contact CASCADE;
+DROP TABLE IF EXISTS gallery CASCADE;
+DROP TABLE IF EXISTS contributions CASCADE;
+DROP TABLE IF EXISTS quizzes CASCADE;
+DROP TABLE IF EXISTS word_of_the_day CASCADE;
+DROP TABLE IF EXISTS regions CASCADE;
+DROP TABLE IF EXISTS folklore CASCADE;
+DROP TABLE IF EXISTS traditions CASCADE;
+DROP TABLE IF EXISTS arts_culture CASCADE;
+DROP TABLE IF EXISTS vocabularies CASCADE;
+DROP TABLE IF EXISTS languages CASCADE;
+DROP TABLE IF EXISTS about CASCADE;
+DROP TABLE IF EXISTS homepage CASCADE;
+DROP TABLE IF EXISTS admins CASCADE;
 
 -- Enable pgcrypto extension for UUID generation if not already active
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 1. ADMINS TABLE
 CREATE TABLE IF NOT EXISTS admins (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL, -- Plaintext for demo, or bcrypt hashed
+    password TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -41,7 +58,7 @@ CREATE TABLE IF NOT EXISTS languages (
 
 -- 5. VOCABULARIES TABLE
 CREATE TABLE IF NOT EXISTS vocabularies (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     language_id TEXT REFERENCES languages(id) ON DELETE CASCADE,
     word TEXT NOT NULL,
     meaning TEXT NOT NULL,
@@ -51,8 +68,8 @@ CREATE TABLE IF NOT EXISTS vocabularies (
 
 -- 6. ARTS & CULTURE TABLE
 CREATE TABLE IF NOT EXISTS arts_culture (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    category TEXT NOT NULL, -- e.g. 'Tari', 'Musik', 'Alat Musik', 'Pakaian Adat', 'Kerajinan', 'Kesenian Lainnya'
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    category TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     origin_region TEXT NOT NULL,
@@ -63,7 +80,7 @@ CREATE TABLE IF NOT EXISTS arts_culture (
 
 -- 7. TRADITIONS TABLE
 CREATE TABLE IF NOT EXISTS traditions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     location TEXT NOT NULL,
@@ -75,7 +92,7 @@ CREATE TABLE IF NOT EXISTS traditions (
 
 -- 8. FOLKLORE TABLE
 CREATE TABLE IF NOT EXISTS folklore (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     image_url TEXT,
@@ -95,7 +112,7 @@ CREATE TABLE IF NOT EXISTS regions (
 
 -- 10. WORD OF THE DAY TABLE
 CREATE TABLE IF NOT EXISTS word_of_the_day (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     word TEXT NOT NULL,
     meaning TEXT NOT NULL,
     language_name TEXT NOT NULL,
@@ -106,7 +123,7 @@ CREATE TABLE IF NOT EXISTS word_of_the_day (
 
 -- 11. QUIZZES TABLE
 CREATE TABLE IF NOT EXISTS quizzes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     question TEXT NOT NULL,
     option_a TEXT NOT NULL,
     option_b TEXT NOT NULL,
@@ -115,25 +132,27 @@ CREATE TABLE IF NOT EXISTS quizzes (
     correct_answer TEXT NOT NULL CHECK (correct_answer IN ('A', 'B', 'C', 'D')),
     score INTEGER DEFAULT 10,
     explanation TEXT,
+    category TEXT, -- Added category field
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 12. CONTRIBUTIONS TABLE
 CREATE TABLE IF NOT EXISTS contributions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     sender_name TEXT NOT NULL,
     sender_email TEXT NOT NULL,
-    category TEXT NOT NULL, -- e.g. 'Cerita Rakyat', 'Seni & Budaya', 'Tradisi', 'Bahasa', 'Lainnya'
+    category TEXT NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT,
+    audio_url TEXT,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 13. GALLERY TABLE
 CREATE TABLE IF NOT EXISTS gallery (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     title TEXT NOT NULL,
     type TEXT DEFAULT 'image' CHECK (type IN ('image', 'video')),
     media_url TEXT NOT NULL,
@@ -148,12 +167,40 @@ CREATE TABLE IF NOT EXISTS contact (
     instagram TEXT,
     facebook TEXT,
     twitter TEXT,
+    dekranasda_kalteng TEXT, -- Added missing field
     address TEXT NOT NULL,
     phone TEXT,
     about_us TEXT
 );
 
+-- 15. ACTIVE SESSIONS TABLE
+CREATE TABLE IF NOT EXISTS active_sessions (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
 -- Seed initial Admin Account
 INSERT INTO admins (username, password)
-VALUES ('admin@tentangitah.id', 'ItahAdmin2026!')
+VALUES ('admin@tentangitah.id', 'Kalimantancerah123#')
 ON CONFLICT (username) DO NOTHING;
+
+-- ========================================================
+-- STORAGE BUCKET CONFIGURATION & RLS POLICIES
+-- Run this block in Supabase SQL Editor to fix "new row violates row-level security policy"
+-- ========================================================
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('tentang-itah', 'tentang-itah', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+DROP POLICY IF EXISTS "Public Uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Public Updates" ON storage.objects;
+DROP POLICY IF EXISTS "Public Deletes" ON storage.objects;
+
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'tentang-itah');
+CREATE POLICY "Public Uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'tentang-itah');
+CREATE POLICY "Public Updates" ON storage.objects FOR UPDATE USING (bucket_id = 'tentang-itah');
+CREATE POLICY "Public Deletes" ON storage.objects FOR DELETE USING (bucket_id = 'tentang-itah');
+

@@ -15,6 +15,18 @@ export default function ContactForm() {
       alert('Nama, email, dan pesan wajib diisi!');
       return;
     }
+
+    if (/[<>]/.test(name) || /[<>]/.test(email) || /[<>]/.test(subject) || /[<>]/.test(message)) {
+      alert('Karakter < dan > tidak diperbolehkan pada kolom input!');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Format alamat email tidak valid!');
+      return;
+    }
+
     setIsSent(true);
     alert('Pesan berhasil terkirim. Terima kasih atas masukan Anda!');
     // Clear inputs

@@ -58,6 +58,17 @@ export default function AdminLanguageManager({
       return;
     }
 
+    const slugRegex = /^[a-z0-9-]+$/;
+    if (!slugRegex.test(langId)) {
+      setError('ID Bahasa hanya boleh berisi huruf kecil, angka, dan tanda hubung (-). Tanpa spasi atau karakter spesial.');
+      return;
+    }
+
+    if (/[<>]/.test(langName) || /[<>]/.test(langDesc) || /[<>]/.test(langRegion)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -131,6 +142,15 @@ export default function AdminLanguageManager({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
+      setError('Ukuran audio minimal 10 KB dan maksimal 5 MB');
+      return;
+    }
+
     setIsUploading(true);
     setError('');
 
@@ -161,6 +181,17 @@ export default function AdminLanguageManager({
     e.preventDefault();
     if (!vocabLangId || !vocabWord || !vocabMeaning) {
       setError('Bahasa, kosakata, dan arti wajib diisi');
+      return;
+    }
+
+    const wordRegex = /^[a-zA-Z\s'-]+$/;
+    if (!wordRegex.test(vocabWord)) {
+      setError('Kosakata hanya boleh berisi huruf, spasi, tanda hubung (-), dan tanda petik (\')');
+      return;
+    }
+
+    if (/[<>]/.test(vocabMeaning)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
       return;
     }
 
@@ -458,11 +489,12 @@ export default function AdminLanguageManager({
                 <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Audio Pengucapan (Opsional)</label>
                 <input
                   type="file"
-                  accept="audio/*"
+                  accept="audio/mpeg,audio/mp3"
                   onChange={handleAudioUpload}
                   disabled={isUploading}
                   className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
                 />
+                <p className="text-4xs text-muted/70 mt-1">Format: MP3 saja (Maksimal 5 MB)</p>
                 {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah file audio...</p>}
                 {vocabAudio && (
                   <div className="text-3xs text-muted flex items-center gap-1 mt-1">

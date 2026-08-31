@@ -34,6 +34,23 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_IMAGE_SIZE = 500 * 1024; // 500KB
+    const MAX_AUDIO_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (fieldName === 'image_url') {
+      if (file.size < MIN_SIZE || file.size > MAX_IMAGE_SIZE) {
+        setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
+        return;
+      }
+    } else if (fieldName === 'audio_url') {
+      if (file.size < MIN_SIZE || file.size > MAX_AUDIO_SIZE) {
+        setError('Ukuran audio minimal 10 KB dan maksimal 5 MB');
+        return;
+      }
+    }
+
     setIsUploading(fieldName);
     setError('');
 
@@ -66,6 +83,11 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
     e.preventDefault();
     if (!title || !content || !region) {
       setError('Judul, isi cerita, dan asal daerah wajib diisi');
+      return;
+    }
+
+    if (/[<>]/.test(title) || /[<>]/.test(content) || /[<>]/.test(region)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
       return;
     }
 
@@ -103,19 +125,19 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
       setImageUrl('');
       setAudioUrl('');
     } catch (err: any) {
-      setError(err.message || 'Gagal menyimpan cerita');
+      setError(err.message || 'Gagal menyimpan cerita rakyat');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEdit = (story: Folklore) => {
-    setEditingId(story.id);
-    setTitle(story.title);
-    setContent(story.content);
-    setRegion(story.region);
-    setImageUrl(story.image_url || '');
-    setAudioUrl(story.audio_url || '');
+  const handleEdit = (folk: Folklore) => {
+    setEditingId(folk.id);
+    setTitle(folk.title);
+    setContent(folk.content);
+    setRegion(folk.region);
+    setImageUrl(folk.image_url || '');
+    setAudioUrl(folk.audio_url || '');
   };
 
   const handleDelete = async (id: string) => {
@@ -127,7 +149,7 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
         showSuccess('Cerita rakyat berhasil dihapus');
       }
     } catch (err: any) {
-      setError(err.message || 'Gagal menghapus cerita');
+      setError(err.message || 'Gagal menghapus data');
     }
   };
 
@@ -146,7 +168,7 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
       {/* Form Column */}
       <div className="lg:col-span-5 bg-card-bg border border-card-border/60 p-6 rounded-2xl shadow-sm space-y-4">
         <h3 className="font-serif text-base font-bold text-foreground">
-          {editingId ? 'Sunting Cerita Rakyat' : 'Tambah Cerita Rakyat Baru'}
+          {editingId ? 'Sunting Cerita Rakyat' : 'Tambah Cerita Baru'}
         </h3>
 
         {success && (
@@ -163,11 +185,11 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Judul Cerita *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Judul Dongeng *</label>
             <input
               type="text"
               required
-              placeholder="Contoh: Legenda Bukit Tangkiling"
+              placeholder="Contoh: Asal Usul Danau Malawen"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
@@ -175,11 +197,11 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Asal Kabupaten/Kota *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Asal Daerah Cerita *</label>
             <input
               type="text"
               required
-              placeholder="Contoh: Kota Palangka Raya"
+              placeholder="Contoh: Barito Selatan"
               value={region}
               onChange={(e) => setRegion(e.target.value)}
               className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
@@ -187,44 +209,46 @@ export default function AdminFolkloreManager({ initialStories }: AdminFolkloreMa
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Isi Cerita Lengkap *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Isi Narasi Cerita *</label>
             <textarea
               required
-              rows={8}
-              placeholder="Tuliskan cerita rakyat atau dongeng..."
+              rows={6}
+              placeholder="Tuliskan kisah lengkap dongeng di sini..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none font-sans leading-relaxed text-xs"
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none text-xs"
             />
           </div>
 
           <div className="space-y-2 border-t border-card-border/40 pt-4">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Ilustrasi (Opsional)</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Ilustrasi Cerita (Opsional)</label>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={(e) => handleFileUpload(e, 'image_url')}
               disabled={isUploading !== null}
               className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
             />
+            <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading === 'image_url' && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
               <div className="flex gap-2 items-center mt-2">
-                <img src={imageUrl} alt="Folk Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
+                <img src={imageUrl} alt="Preview" className="w-12 h-12 object-cover border border-card-border rounded" />
                 <span className="text-3xs text-muted truncate max-w-[120px]">{imageUrl}</span>
               </div>
             )}
           </div>
 
-          <div className="space-y-2 border-t border-card-border/40 pt-4">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Narasi Audio (Opsional)</label>
+          <div className="space-y-2 border-t border-card-border/40 pt-2">
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Audio Narasi Dongeng (Opsional)</label>
             <input
               type="file"
-              accept="audio/*"
+              accept="audio/mpeg,audio/mp3"
               onChange={(e) => handleFileUpload(e, 'audio_url')}
               disabled={isUploading !== null}
               className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
             />
+            <p className="text-4xs text-muted/70 mt-1">Format: MP3 (Maksimal 5 MB)</p>
             {isUploading === 'audio_url' && <p className="text-3xs text-primary animate-pulse">Mengunggah audio...</p>}
             {audioUrl && (
               <div className="text-3xs text-muted flex items-center gap-1 mt-1">

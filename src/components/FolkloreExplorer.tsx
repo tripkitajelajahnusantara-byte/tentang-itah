@@ -11,51 +11,110 @@ interface FolkloreExplorerProps {
 
 export default function FolkloreExplorer({ stories }: FolkloreExplorerProps) {
   const [selectedStory, setSelectedStory] = useState<Folklore | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 6;
+
+  const totalPages = Math.ceil(stories.length / itemsPerPage);
+  const currentStories = stories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1);
+  }
 
   return (
     <div className="space-y-8">
       {/* Grid of Stories */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {stories.map((story) => (
-          <div 
-            key={story.id} 
-            className="bg-card-bg border border-card-border/60 rounded-xl overflow-hidden card-lift flex flex-col group cursor-pointer"
-            onClick={() => setSelectedStory(story)}
-          >
-            <div className="w-full aspect-[16/9] overflow-hidden relative">
-              <DynamicImage 
-                src={story.image_url} 
-                alt={story.title} 
-                className="w-full h-full rounded-none"
-              />
-              <span className="absolute bottom-3 left-3 bg-primary/90 text-white px-2.5 py-0.5 rounded-full text-3xs font-semibold uppercase tracking-wider">
-                {story.region}
-              </span>
-            </div>
-            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-              <div className="space-y-2">
-                <h2 className="font-serif text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
-                  {story.title}
-                </h2>
-                <p className="text-sm text-muted leading-relaxed line-clamp-3">
-                  {story.content}
-                </p>
-              </div>
-              <div className="pt-2 flex items-center justify-between text-xs">
-                <span className="text-primary font-bold group-hover:underline">Baca Selengkapnya</span>
-                {story.audio_url && (
-                  <span className="flex items-center gap-1 text-secondary font-medium">
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                    </svg>
-                    Tersedia Audio
+      {currentStories.length > 0 ? (
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {currentStories.map((story) => (
+              <div 
+                key={story.id} 
+                className="bg-card-bg border border-card-border/60 rounded-xl overflow-hidden card-lift group cursor-pointer"
+                onClick={() => setSelectedStory(story)}
+              >
+                <div className="w-full aspect-[16/9] overflow-hidden relative">
+                  <DynamicImage 
+                    src={story.image_url} 
+                    alt={story.title} 
+                    className="w-full h-full rounded-none"
+                  />
+                  <span className="absolute bottom-3 left-3 bg-primary/90 text-white px-2.5 py-0.5 rounded-full text-3xs font-semibold uppercase tracking-wider">
+                    {story.region}
                   </span>
-                )}
+                </div>
+                <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <h2 className="font-serif text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                      {story.title}
+                    </h2>
+                    <p className="text-sm text-muted leading-relaxed line-clamp-3">
+                      {story.content}
+                    </p>
+                  </div>
+                  <div className="pt-2 flex items-center justify-between text-xs">
+                    <span className="text-primary font-bold group-hover:underline">Baca Selengkapnya</span>
+                    {story.audio_url && (
+                      <span className="flex items-center gap-1 text-secondary font-medium">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                        </svg>
+                        Tersedia Audio
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-1.5 pt-6">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                title="Halaman Sebelumnya"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-9 h-9 rounded-lg font-sans font-semibold text-xs transition-all cursor-pointer ${
+                    currentPage === page
+                      ? 'bg-primary text-white shadow-md shadow-primary/10'
+                      : 'border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                title="Halaman Selanjutnya"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-card-bg border border-card-border/60 rounded-xl py-16 text-center text-muted">
+          <svg className="w-12 h-12 mx-auto text-muted/65 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p className="text-sm">Belum ada cerita rakyat yang ditambahkan.</p>
+        </div>
+      )}
 
       {/* Reading Modal */}
       {selectedStory && (

@@ -12,6 +12,8 @@ interface LanguageExplorerProps {
 export default function LanguageExplorer({ languages, vocabularies }: LanguageExplorerProps) {
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 9;
 
   // Filter vocabularies based on selected tab and search query
   const filteredVocabularies = vocabularies.filter((vocab) => {
@@ -21,6 +23,13 @@ export default function LanguageExplorer({ languages, vocabularies }: LanguageEx
       vocab.meaning.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesLanguage && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredVocabularies.length / itemsPerPage);
+  const currentVocabularies = filteredVocabularies.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1);
+  }
 
   const getLanguageName = (langId: string) => {
     const lang = languages.find(l => l.id === langId);
@@ -38,7 +47,10 @@ export default function LanguageExplorer({ languages, vocabularies }: LanguageEx
             type="text"
             placeholder="Cari kosakata atau arti..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full px-4 py-3 pl-10 rounded-xl border border-card-border/80 bg-card-bg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
           />
           <svg className="absolute left-3.5 top-3.5 w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -50,7 +62,10 @@ export default function LanguageExplorer({ languages, vocabularies }: LanguageEx
       {/* Language Tabs */}
       <div className="flex flex-wrap justify-center gap-2 border-b border-card-border/40 pb-4">
         <button
-          onClick={() => setSelectedLanguageId('all')}
+          onClick={() => {
+            setSelectedLanguageId('all');
+            setCurrentPage(1);
+          }}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
             selectedLanguageId === 'all'
               ? 'bg-primary text-white shadow-md shadow-primary/10'
@@ -62,7 +77,10 @@ export default function LanguageExplorer({ languages, vocabularies }: LanguageEx
         {languages.map((lang) => (
           <button
             key={lang.id}
-            onClick={() => setSelectedLanguageId(lang.id)}
+            onClick={() => {
+              setSelectedLanguageId(lang.id);
+              setCurrentPage(1);
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
               selectedLanguageId === lang.id
                 ? 'bg-primary text-white shadow-md shadow-primary/10'
@@ -92,36 +110,77 @@ export default function LanguageExplorer({ languages, vocabularies }: LanguageEx
           Daftar Kosakata ({filteredVocabularies.length})
         </h3>
         
-        {filteredVocabularies.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVocabularies.map((vocab) => (
-              <div 
-                key={vocab.id} 
-                className="bg-card-bg border border-card-border/80 rounded-xl p-5 card-lift flex flex-col justify-between gap-4"
-              >
-                <div className="space-y-2">
-                  <div className="flex justify-between items-start gap-2">
-                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-3xs font-semibold">
-                      {getLanguageName(vocab.language_id)}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="font-serif text-2xl font-bold text-foreground tracking-wide">
-                      {vocab.word}
+        {currentVocabularies.length > 0 ? (
+          <div className="space-y-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentVocabularies.map((vocab) => (
+                <div 
+                  key={vocab.id} 
+                  className="bg-card-bg border border-card-border/80 rounded-xl p-5 card-lift flex flex-col justify-between gap-4"
+                >
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-3xs font-semibold">
+                        {getLanguageName(vocab.language_id)}
+                      </span>
                     </div>
-                    <div className="text-sm text-muted font-light">
-                      artinya: <span className="font-semibold text-foreground/90">{vocab.meaning}</span>
+                    <div className="space-y-1">
+                      <div className="font-serif text-2xl font-bold text-foreground tracking-wide">
+                        {vocab.word}
+                      </div>
+                      <div className="text-sm text-muted font-light">
+                        artinya: <span className="font-semibold text-foreground/90">{vocab.meaning}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {vocab.audio_url && (
-                  <div className="pt-2 border-t border-card-border/40 flex justify-start">
-                    <AudioPlayer src={vocab.audio_url} label="Dengar Pelafalan" />
-                  </div>
-                )}
+                  {vocab.audio_url && (
+                    <div className="pt-2 border-t border-card-border/40 flex justify-start">
+                      <AudioPlayer src={vocab.audio_url} label="Dengar Pelafalan" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-1.5 pt-6">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                  title="Halaman Sebelumnya"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-9 h-9 rounded-lg font-sans font-semibold text-xs transition-all cursor-pointer ${
+                      currentPage === page
+                        ? 'bg-primary text-white shadow-md shadow-primary/10'
+                        : 'border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                  title="Halaman Selanjutnya"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
-            ))}
+            )}
           </div>
         ) : (
           <div className="bg-card-bg border border-card-border/60 rounded-xl py-12 text-center text-muted">

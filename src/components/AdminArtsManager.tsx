@@ -35,6 +35,15 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_SIZE = 500 * 1024; // 500KB
+
+    if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
+      setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
+      return;
+    }
+
     setIsUploading(true);
     setError('');
 
@@ -69,6 +78,11 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
       return;
     }
 
+    if (/[<>]/.test(name) || /[<>]/.test(description) || /[<>]/.test(originRegion) || /[<>]/.test(meaning)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -95,10 +109,10 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           image_url: imageUrl || undefined
         });
         setArts([...arts, newArt]);
-        showSuccess('Kesenian baru berhasil ditambahkan');
+        showSuccess('Kesenian berhasil ditambahkan');
       }
 
-      // Reset Form
+      // Reset
       setName('');
       setDescription('');
       setOriginRegion('');
@@ -130,7 +144,7 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
         showSuccess('Kesenian berhasil dihapus');
       }
     } catch (err: any) {
-      setError(err.message || 'Gagal menghapus kesenian');
+      setError(err.message || 'Gagal menghapus data');
     }
   };
 
@@ -149,7 +163,7 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
       {/* Form Column */}
       <div className="lg:col-span-5 bg-card-bg border border-card-border/60 p-6 rounded-2xl shadow-sm space-y-4">
         <h3 className="font-serif text-base font-bold text-foreground">
-          {editingId ? 'Sunting Seni & Budaya' : 'Tambah Seni & Budaya Baru'}
+          {editingId ? 'Sunting Kesenian' : 'Tambah Kesenian Baru'}
         </h3>
 
         {success && (
@@ -166,23 +180,22 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Kategori Kesenian *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Kategori Seni *</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
             >
-              <option value="Tari">Tari Tradisional</option>
-              <option value="Musik">Musik Tradisional</option>
-              <option value="Alat Musik">Alat Musik</option>
-              <option value="Pakaian Adat">Pakaian Adat</option>
-              <option value="Kerajinan">Kerajinan Tangan</option>
+              <option value="Tari">Seni Tari</option>
+              <option value="Musik">Seni Musik / Lagu</option>
+              <option value="Kriya">Seni Kriya / Ukir / Anyam</option>
+              <option value="Busana">Busana / Pakaian Adat</option>
               <option value="Kesenian Lainnya">Kesenian Lainnya</option>
             </select>
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Item Budaya *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Karya Seni *</label>
             <input
               type="text"
               required
@@ -194,11 +207,11 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Asal Daerah *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Asal Wilayah/Kabupaten *</label>
             <input
               type="text"
               required
-              placeholder="Contoh: Kabupaten Gunung Mas"
+              placeholder="Contoh: Barito Selatan"
               value={originRegion}
               onChange={(e) => setOriginRegion(e.target.value)}
               className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
@@ -206,38 +219,39 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Lengkap *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Filosofi & Makna Kebudayaan *</label>
+            <input
+              type="text"
+              required
+              placeholder="Jelaskan secara singkat makna dibalik kesenian ini..."
+              value={meaning}
+              onChange={(e) => setMeaning(e.target.value)}
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Lengkap Kesenian *</label>
             <textarea
               required
               rows={4}
-              placeholder="Jelaskan sejarah, cara penyajian, ornamen, atau cara memainkan..."
+              placeholder="Tuliskan latar belakang sejarah, alat/bahan yang digunakan, tata cara pertunjukan..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Makna Filosofis *</label>
-            <textarea
-              required
-              rows={3}
-              placeholder="Makna atau filosofi di balik kesenian ini..."
-              value={meaning}
-              onChange={(e) => setMeaning(e.target.value)}
-              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none"
-            />
-          </div>
-
           <div className="space-y-2 border-t border-card-border/40 pt-4">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Pendukung (Opsional)</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Karya Seni (Opsional)</label>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={handleFileUpload}
               disabled={isUploading}
               className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
             />
+            <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
               <div className="flex gap-2 items-center mt-2">

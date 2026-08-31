@@ -224,6 +224,13 @@ export default function AdminContributionManager({
                   <img src={selectedItem.image_url} alt="Attached Preview" className="w-full h-full object-cover" />
                 </div>
               )}
+
+              {selectedItem.audio_url && (
+                <div className="space-y-1.5">
+                  <span className="text-3xs font-bold text-muted uppercase tracking-wider block">Lampiran Audio:</span>
+                  <audio src={selectedItem.audio_url} controls className="w-full h-9 rounded-lg border border-card-border/40 bg-background" />
+                </div>
+              )}
               
               <div className="space-y-1.5">
                 <span className="text-3xs font-bold text-muted uppercase tracking-wider block">Isi Kontribusi:</span>

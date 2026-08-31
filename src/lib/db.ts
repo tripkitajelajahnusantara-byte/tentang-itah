@@ -117,6 +117,7 @@ export interface Contribution {
   title: string;
   description: string;
   image_url?: string;
+  audio_url?: string;
   status: 'pending' | 'approved' | 'rejected';
   created_at?: string;
 }
@@ -136,9 +137,17 @@ export interface Contact {
   instagram?: string;
   facebook?: string;
   twitter?: string;
-  address: string;
+  dekranasda_kalteng?: string;
+  address?: string;
   phone?: string;
   about_us?: string;
+}
+
+export interface ActiveSession {
+  id: string;
+  username: string;
+  created_at: string;
+  expires_at: string;
 }
 
 export interface DatabaseSchema {
@@ -156,16 +165,17 @@ export interface DatabaseSchema {
   contributions: Contribution[];
   gallery: Gallery[];
   contact: Contact;
+  active_sessions?: ActiveSession[];
 }
 
 // --- DUAL MODE CONFIGURATION ---
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseKey)
   : null;
 
 // File database path
@@ -179,7 +189,7 @@ const initialSeedData: DatabaseSchema = {
     {
       id: 'admin-id-1',
       username: 'admin@tentangitah.id',
-      password: 'ItahAdmin2026!',
+      password: 'Kalimantancerah123#',
     },
   ],
   homepage: {
@@ -390,14 +400,14 @@ const initialSeedData: DatabaseSchema = {
   ],
   contact: {
     id: 1,
-    email: 'kontak@tentangitah.id',
-    instagram: '@tentangitah.kalteng',
-    facebook: 'Tentang Itah Kalteng',
-    twitter: '@tentangitah',
-    address: 'Jl. Tjilik Riwut KM 2.5, Kota Palangka Raya, Kalimantan Tengah 73111',
-    phone: '+62 811-520-2026',
+    email: 'tentangitah@gmail.com',
+    instagram: '@tentangitah',
+    facebook: 'Tentang Itah',
+    dekranasda_kalteng: '@dekranasdaprovkalteng',
+    phone: '082274595638',
     about_us: 'Platform edukasi budaya independen yang dikembangkan oleh putra-putri daerah Kalimantan Tengah untuk melestarikan identitas lokal di era globalisasi.',
   },
+  active_sessions: [],
 };
 
 // --- CORE READ/WRITE INTERFACE ---
@@ -431,7 +441,15 @@ export function readLocalDb(): DatabaseSchema {
 // Write whole DB
 export function writeLocalDb(data: DatabaseSchema): void {
   initializeLocalDb();
-  fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (error: any) {
+    console.error('Error writing to local database:', error);
+    if (error.code === 'EROFS' || error.message?.includes('read-only')) {
+      throw new Error('Database lokal bersifat read-only di serverless (Vercel). Harap konfigurasikan database Supabase Anda.');
+    }
+    throw error;
+  }
 }
 
 // --- DUAL MODE DYNAMIC API HANDLERS ---
@@ -977,4 +995,91 @@ export async function authenticateAdmin(username: string, passwordSecret: string
     return { id: matched.id, username: matched.username };
   }
   return null;
+}
+
+// --- ACTIVE SESSIONS CRUD ---
+
+export async function cleanExpiredSessions(): Promise<void> {
+  const now = new Date().toISOString();
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('active_sessions').delete().lt('expires_at', now);
+    } catch (e) {
+      console.error('Supabase session cleanup error:', e);
+    }
+    return;
+  }
+  const db = readLocalDb();
+  if (!db.active_sessions) db.active_sessions = [];
+  const initialCount = db.active_sessions.length;
+  db.active_sessions = db.active_sessions.filter((s) => new Date(s.expires_at).getTime() > Date.now());
+  if (db.active_sessions.length !== initialCount) {
+    try {
+      writeLocalDb(db);
+    } catch (error) {
+      console.warn('Could not write database update during session cleanup (probably read-only filesystem):', error);
+    }
+  }
+}
+
+export async function getActiveSessionsCount(): Promise<number> {
+  await cleanExpiredSessions();
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { count, error } = await supabase.from('active_sessions').select('*', { count: 'exact', head: true });
+      if (!error && count !== null) return count;
+    } catch (e) {
+      console.error('Supabase session count error:', e);
+    }
+  }
+  const db = readLocalDb();
+  if (!db.active_sessions) db.active_sessions = [];
+  return db.active_sessions.length;
+}
+
+export async function addActiveSession(id: string, username: string, expiresAt: string): Promise<void> {
+  await cleanExpiredSessions();
+  const session = { id, username, expires_at: expiresAt, created_at: new Date().toISOString() };
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('active_sessions').insert(session);
+    } catch (e) {
+      console.error('Supabase add session error:', e);
+    }
+    return;
+  }
+  const db = readLocalDb();
+  if (!db.active_sessions) db.active_sessions = [];
+  db.active_sessions.push(session);
+  writeLocalDb(db);
+}
+
+export async function removeActiveSession(id: string): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('active_sessions').delete().eq('id', id);
+    } catch (e) {
+      console.error('Supabase remove session error:', e);
+    }
+    return;
+  }
+  const db = readLocalDb();
+  if (!db.active_sessions) db.active_sessions = [];
+  db.active_sessions = db.active_sessions.filter((s) => s.id !== id);
+  writeLocalDb(db);
+}
+
+export async function isSessionActive(id: string): Promise<boolean> {
+  await cleanExpiredSessions();
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('active_sessions').select('*').eq('id', id);
+      return !error && data && data.length > 0;
+    } catch (e) {
+      console.error('Supabase check session error:', e);
+    }
+  }
+  const db = readLocalDb();
+  if (!db.active_sessions) db.active_sessions = [];
+  return db.active_sessions.some((s) => s.id === id);
 }

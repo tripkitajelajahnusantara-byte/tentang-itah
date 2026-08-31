@@ -39,6 +39,17 @@ export default function AdminQuizManager({ initialQuizzes }: AdminQuizManagerPro
       return;
     }
 
+    if (/[<>]/.test(question) || /[<>]/.test(optionA) || /[<>]/.test(optionB) || /[<>]/.test(optionC) || /[<>]/.test(optionD) || /[<>]/.test(explanation) || /[<>]/.test(category)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
+      return;
+    }
+
+    const scoreNum = Number(score);
+    if (isNaN(scoreNum) || scoreNum < 0 || !Number.isInteger(scoreNum)) {
+      setError('Skor kuis harus berupa bilangan bulat positif');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -51,7 +62,7 @@ export default function AdminQuizManager({ initialQuizzes }: AdminQuizManagerPro
           option_c: optionC,
           option_d: optionD,
           correct_answer: correctAnswer,
-          score,
+          score: scoreNum,
           explanation,
           category
         });

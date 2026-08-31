@@ -7,18 +7,30 @@ import * as auth from '@/lib/auth';
 // --- AUTHENTICATION ACTIONS ---
 
 export async function loginAdminAction(prevState: any, formData: FormData) {
-  const username = formData.get('username') as string;
-  const password = formData.get('password') as string;
+  try {
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
 
-  if (!username || !password) {
-    return { success: false, error: 'Username dan password wajib diisi' };
-  }
+    if (!username || !password) {
+      return { success: false, error: 'Username dan password wajib diisi' };
+    }
 
-  const success = await auth.loginAdmin(username, password);
-  if (success) {
-    return { success: true };
-  } else {
-    return { success: false, error: 'Username atau password salah' };
+    if (username.length > 100 || password.length > 100) {
+      return { success: false, error: 'Username dan password maksimal 100 karakter' };
+    }
+
+    if (/[<>]/.test(username) || /[<>]/.test(password)) {
+      return { success: false, error: 'Karakter < dan > tidak diperbolehkan' };
+    }
+
+    const result = await auth.loginAdmin(username, password);
+    return result;
+  } catch (error: any) {
+    console.error('Error during login action:', error);
+    return {
+      success: false,
+      error: error.message || 'Terjadi kesalahan sistem saat masuk.'
+    };
   }
 }
 
@@ -341,7 +353,7 @@ export async function verifyContributionAction(id: string, status: 'approved' | 
     throw new Error('Unauthorized');
   }
   const contrib = await db.updateContributionStatus(id, status);
-  
+
   // If approved, dynamically insert into the correct content table based on contribution type!
   if (status === 'approved') {
     if (contrib.category === 'Cerita Rakyat') {
@@ -349,6 +361,7 @@ export async function verifyContributionAction(id: string, status: 'approved' | 
         title: contrib.title,
         content: contrib.description,
         image_url: contrib.image_url,
+        audio_url: contrib.audio_url,
         region: 'Kalimantan Tengah',
       });
       revalidatePath('/cerita-rakyat');
@@ -398,6 +411,15 @@ export async function addGalleryAction(item: Omit<db.Gallery, 'id'>) {
   if (!(await auth.isAdminAuthenticated())) {
     throw new Error('Unauthorized');
   }
+  if (!item.title || item.title.length > 100) {
+    throw new Error('Judul media wajib diisi dan maksimal 100 karakter');
+  }
+  if (item.description && item.description.length > 500) {
+    throw new Error('Keterangan media maksimal 500 karakter');
+  }
+  if (/[<>]/.test(item.title) || (item.description && /[<>]/.test(item.description))) {
+    throw new Error('Karakter < dan > tidak diperbolehkan');
+  }
   const result = await db.addGallery(item);
   revalidatePath('/galeri');
   return result;
@@ -406,6 +428,15 @@ export async function addGalleryAction(item: Omit<db.Gallery, 'id'>) {
 export async function updateGalleryAction(id: string, updates: Partial<db.Gallery>) {
   if (!(await auth.isAdminAuthenticated())) {
     throw new Error('Unauthorized');
+  }
+  if (updates.title && updates.title.length > 100) {
+    throw new Error('Judul media maksimal 100 karakter');
+  }
+  if (updates.description && updates.description.length > 500) {
+    throw new Error('Keterangan media maksimal 500 karakter');
+  }
+  if ((updates.title && /[<>]/.test(updates.title)) || (updates.description && /[<>]/.test(updates.description))) {
+    throw new Error('Karakter < dan > tidak diperbolehkan');
   }
   const result = await db.updateGallery(id, updates);
   revalidatePath('/galeri');
@@ -440,7 +471,7 @@ export async function getDashboardStatsAction() {
   }
 
   const dbData = db.readLocalDb();
-  
+
   const languagesCount = dbData.languages.length;
   const vocabulariesCount = dbData.vocabularies.length;
   const artsCount = dbData.arts_culture.length;
@@ -449,18 +480,18 @@ export async function getDashboardStatsAction() {
   const regionsCount = dbData.regions.length;
   const galleryCount = dbData.gallery.length;
   const quizzesCount = dbData.quizzes.length;
-  
+
   const pendingContributions = dbData.contributions.filter(c => c.status === 'pending').length;
   const approvedContributions = dbData.contributions.filter(c => c.status === 'approved').length;
 
-  const totalContentActive = 
-    languagesCount + 
-    vocabulariesCount + 
-    artsCount + 
-    traditionsCount + 
-    folkloreCount + 
-    regionsCount + 
-    galleryCount + 
+  const totalContentActive =
+    languagesCount +
+    vocabulariesCount +
+    artsCount +
+    traditionsCount +
+    folkloreCount +
+    regionsCount +
+    galleryCount +
     quizzesCount;
 
   return {

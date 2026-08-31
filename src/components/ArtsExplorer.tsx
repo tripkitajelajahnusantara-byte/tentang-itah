@@ -11,12 +11,22 @@ interface ArtsExplorerProps {
 export default function ArtsExplorer({ arts }: ArtsExplorerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [selectedArt, setSelectedArt] = useState<ArtsCulture | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 9;
 
   const categories = ['Semua', 'Tari', 'Musik', 'Alat Musik', 'Pakaian Adat', 'Kerajinan', 'Kesenian Lainnya'];
 
   const filteredArts = selectedCategory === 'Semua'
     ? arts
     : arts.filter(art => art.category === selectedCategory);
+
+  const totalPages = Math.ceil(filteredArts.length / itemsPerPage);
+  const currentArts = filteredArts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset page when category changes or page is out of bounds
+  if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1);
+  }
 
   return (
     <div className="space-y-8">
@@ -25,7 +35,10 @@ export default function ArtsExplorer({ arts }: ArtsExplorerProps) {
         {categories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setSelectedCategory(cat)}
+            onClick={() => {
+              setSelectedCategory(cat);
+              setCurrentPage(1);
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer ${
               selectedCategory === cat
                 ? 'bg-primary text-white shadow-md shadow-primary/10'
@@ -38,60 +51,105 @@ export default function ArtsExplorer({ arts }: ArtsExplorerProps) {
       </div>
 
       {/* Grid List */}
-      {filteredArts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredArts.map((art) => (
-            <div 
-              key={art.id} 
-              className="bg-card-bg border border-card-border/60 rounded-xl overflow-hidden card-lift flex flex-col group"
-            >
-              {/* Image Section */}
-              <div className="w-full aspect-[16/10] overflow-hidden relative">
-                <DynamicImage 
-                  src={art.image_url} 
-                  alt={art.name} 
-                  className="w-full h-full rounded-none object-cover"
-                />
-              </div>
+      {currentArts.length > 0 ? (
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentArts.map((art) => (
+              <div 
+                key={art.id} 
+                className="bg-card-bg border border-card-border/60 rounded-xl overflow-hidden card-lift flex flex-col group"
+              >
+                {/* Image Section */}
+                <div className="w-full aspect-[16/10] overflow-hidden relative">
+                  <DynamicImage 
+                    src={art.image_url} 
+                    alt={art.name} 
+                    className="w-full h-full rounded-none object-cover"
+                  />
+                </div>
 
-              {/* Content Section */}
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-3xs font-extrabold text-secondary uppercase tracking-widest">
-                    <span>{art.category}</span>
-                    <span className="text-muted font-normal normal-case">{art.origin_region}</span>
+                {/* Content Section */}
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center gap-2 text-3xs font-extrabold tracking-wider">
+                      <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase shrink-0">
+                        {art.category}
+                      </span>
+                      <span className="text-muted font-medium normal-case truncate max-w-[58%] text-right text-3xs" title={art.origin_region}>
+                        {art.origin_region}
+                      </span>
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-foreground group-hover:text-primary transition-all duration-300 line-clamp-1" title={art.name}>
+                      {art.name}
+                    </h3>
+                    <p className="text-xs text-muted leading-relaxed line-clamp-3 text-left">
+                      {art.description}
+                    </p>
                   </div>
-                  <h3 className="font-serif text-xl font-bold text-foreground group-hover:text-primary transition-all duration-300">
-                    {art.name}
-                  </h3>
-                  <p className="text-xs text-muted leading-relaxed line-clamp-4 text-justify">
-                    {art.description}
-                  </p>
-                </div>
 
-                {/* Cultural Meaning Section */}
-                <div className="bg-primary/5 border-l-2 border-primary p-3 rounded-r-lg space-y-1">
-                  <span className="text-3xs font-bold text-primary uppercase tracking-wider block">Makna Filosofis:</span>
-                  <p className="text-xs text-foreground/90 leading-relaxed italic text-justify">
-                    "{art.meaning}"
-                  </p>
-                </div>
+                  {/* Cultural Meaning Section */}
+                  <div className="bg-primary/5 border-l-2 border-primary p-3 rounded-r-lg space-y-1">
+                    <span className="text-3xs font-bold text-primary uppercase tracking-wider block">Makna Filosofis:</span>
+                    <p className="text-xs text-foreground/90 leading-relaxed italic line-clamp-3 text-left">
+                      "{art.meaning}"
+                    </p>
+                  </div>
 
-                {/* Card Footer Link - Triggering Modal */}
-                <div className="pt-2 border-t border-card-border/40">
-                  <button 
-                    onClick={() => setSelectedArt(art)}
-                    className="inline-flex items-center text-xs font-bold text-primary hover:text-primary-hover transition-all cursor-pointer outline-none"
-                  >
-                    Pelajari Selengkapnya
-                    <svg className="w-3.5 h-3.5 ml-1.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                  {/* Card Footer Link - Triggering Modal */}
+                  <div className="pt-2 border-t border-card-border/40">
+                    <button 
+                      onClick={() => setSelectedArt(art)}
+                      className="inline-flex items-center text-xs font-bold text-primary hover:text-primary-hover transition-all cursor-pointer outline-none"
+                    >
+                      Pelajari Selengkapnya
+                      <svg className="w-3.5 h-3.5 ml-1.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-1.5 pt-6">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                title="Halaman Sebelumnya"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-9 h-9 rounded-lg font-sans font-semibold text-xs transition-all cursor-pointer ${
+                    currentPage === page
+                      ? 'bg-primary text-white shadow-md shadow-primary/10'
+                      : 'border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-card-border/80 bg-card-bg hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                title="Halaman Selanjutnya"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
-          ))}
+          )}
         </div>
       ) : (
         <div className="bg-card-bg border border-card-border/60 rounded-xl py-16 text-center text-muted">

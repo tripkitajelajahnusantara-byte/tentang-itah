@@ -35,6 +35,15 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file size validation
+    const MIN_SIZE = 10 * 1024; // 10KB
+    const MAX_SIZE = 500 * 1024; // 500KB
+
+    if (file.size < MIN_SIZE || file.size > MAX_SIZE) {
+      setError('Ukuran gambar minimal 10 KB dan maksimal 500 KB');
+      return;
+    }
+
     setIsUploading(true);
     setError('');
 
@@ -66,6 +75,11 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
     e.preventDefault();
     if (!name || !description || !location || !purpose || !meaning) {
       setError('Seluruh kolom wajib diisi');
+      return;
+    }
+
+    if (/[<>]/.test(name) || /[<>]/.test(description) || /[<>]/.test(location) || /[<>]/.test(purpose) || /[<>]/.test(meaning)) {
+      setError('Karakter < dan > tidak diperbolehkan pada kolom input');
       return;
     }
 
@@ -155,7 +169,7 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
       {/* Form Column */}
       <div className="lg:col-span-5 bg-card-bg border border-card-border/60 p-6 rounded-2xl shadow-sm space-y-4">
         <h3 className="font-serif text-base font-bold text-foreground">
-          {editingId ? 'Sunting Tradisi Adat' : 'Tambah Tradisi Adat Baru'}
+          {editingId ? 'Sunting Tradisi Adat' : 'Tambah Tradisi Baru'}
         </h3>
 
         {success && (
@@ -172,7 +186,7 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Upacara/Tradisi *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Nama Tradisi Upacara *</label>
             <input
               type="text"
               required
@@ -184,11 +198,11 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Lokasi Penyelenggaraan *</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Lokasi Pelaksanaan *</label>
             <input
               type="text"
               required
-              placeholder="Contoh: Kabupaten Gunung Mas"
+              placeholder="Contoh: Kabupaten Katingan"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
@@ -196,50 +210,51 @@ export default function AdminTraditionsManager({ initialTraditions }: AdminTradi
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Tujuan Utama Tradisi *</label>
-            <textarea
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Tujuan & Fungsi Ritual *</label>
+            <input
+              type="text"
               required
-              rows={2}
-              placeholder="Tujuan upacara..."
+              placeholder="Contoh: Mengantarkan arwah leluhur menuju Lewu Tatau..."
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
-              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none"
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Lengkap *</label>
-            <textarea
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Makna Filosofis Tradisi *</label>
+            <input
+              type="text"
               required
-              rows={4}
-              placeholder="Uraikan prosesi adat secara lengkap..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Makna Filosofis *</label>
-            <textarea
-              required
-              rows={3}
-              placeholder="Nilai moral/filosofis adat..."
+              placeholder="Makna adat atau nilai kebersamaan..."
               value={meaning}
               onChange={(e) => setMeaning(e.target.value)}
-              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none"
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Deskripsi Detail Kegiatan *</label>
+            <textarea
+              required
+              rows={5}
+              placeholder="Jelaskan proses pelaksanaan adat dari awal hingga akhir..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-3 py-2 border border-card-border rounded-lg bg-background text-sm text-foreground focus:outline-none resize-none text-xs"
             />
           </div>
 
           <div className="space-y-2 border-t border-card-border/40 pt-4">
-            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Pendukung (Opsional)</label>
+            <label className="text-3xs font-bold text-muted uppercase tracking-wider block">Foto Dokumentasi (Opsional)</label>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={handleFileUpload}
               disabled={isUploading}
               className="w-full text-2xs file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
             />
+            <p className="text-4xs text-muted/70 mt-1">Format: JPG, JPEG, PNG (Maksimal 500 KB)</p>
             {isUploading && <p className="text-3xs text-primary animate-pulse">Mengunggah gambar...</p>}
             {imageUrl && (
               <div className="flex gap-2 items-center mt-2">
