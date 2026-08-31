@@ -7,15 +7,23 @@ import * as auth from '@/lib/auth';
 // --- AUTHENTICATION ACTIONS ---
 
 export async function loginAdminAction(prevState: any, formData: FormData) {
-  const username = formData.get('username') as string;
-  const password = formData.get('password') as string;
+  try {
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
 
-  if (!username || !password) {
-    return { success: false, error: 'Username dan password wajib diisi' };
+    if (!username || !password) {
+      return { success: false, error: 'Username dan password wajib diisi' };
+    }
+
+    const result = await auth.loginAdmin(username, password);
+    return result;
+  } catch (error: any) {
+    console.error('Error during login action:', error);
+    return {
+      success: false,
+      error: error.message || 'Terjadi kesalahan sistem saat masuk.'
+    };
   }
-
-  const result = await auth.loginAdmin(username, password);
-  return result;
 }
 
 export async function logoutAdminAction() {

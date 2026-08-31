@@ -441,7 +441,15 @@ export function readLocalDb(): DatabaseSchema {
 // Write whole DB
 export function writeLocalDb(data: DatabaseSchema): void {
   initializeLocalDb();
-  fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (error: any) {
+    console.error('Error writing to local database:', error);
+    if (error.code === 'EROFS' || error.message?.includes('read-only')) {
+      throw new Error('Database lokal bersifat read-only di serverless (Vercel). Harap konfigurasikan database Supabase Anda.');
+    }
+    throw error;
+  }
 }
 
 // --- DUAL MODE DYNAMIC API HANDLERS ---
@@ -1006,7 +1014,11 @@ export async function cleanExpiredSessions(): Promise<void> {
   const initialCount = db.active_sessions.length;
   db.active_sessions = db.active_sessions.filter((s) => new Date(s.expires_at).getTime() > Date.now());
   if (db.active_sessions.length !== initialCount) {
-    writeLocalDb(db);
+    try {
+      writeLocalDb(db);
+    } catch (error) {
+      console.warn('Could not write database update during session cleanup (probably read-only filesystem):', error);
+    }
   }
 }
 
