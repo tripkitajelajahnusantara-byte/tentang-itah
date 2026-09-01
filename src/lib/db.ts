@@ -388,7 +388,7 @@ const initialSeedData: DatabaseSchema = {
       category: 'Seni & Budaya',
       title: 'Tari Kinyah Mandau',
       description: 'Saya ingin melampirkan informasi tari Kinyah Mandau yang merupakan variasi tarian perang bela diri sebelum menari tari mandau asli. Sangat sarat dengan gerakan beladiri pencak silat kuno.',
-      image_url: '/uploads/kinyah-mandau.jpg',
+      image_url: '/images/tari-mandau.jpg',
       status: 'pending',
       created_at: new Date().toISOString(),
     },

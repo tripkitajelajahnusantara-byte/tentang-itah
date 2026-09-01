@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Contribution } from '@/lib/db';
 import { verifyContributionAction, deleteContributionAction } from '@/app/actions';
+import DynamicImage from '@/components/DynamicImage';
 
 interface AdminContributionManagerProps {
   initialContributions: Contribution[];
@@ -221,7 +222,11 @@ export default function AdminContributionManager({
             <div className="px-6 pb-6 space-y-4">
               {selectedItem.image_url && (
                 <div className="w-full aspect-[16/10] border border-card-border/40 rounded-xl overflow-hidden shadow-sm">
-                  <img src={selectedItem.image_url} alt="Attached Preview" className="w-full h-full object-cover" />
+                  <DynamicImage 
+                    src={selectedItem.image_url} 
+                    alt={selectedItem.title} 
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
               )}
 
