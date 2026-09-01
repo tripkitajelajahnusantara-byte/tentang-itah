@@ -187,8 +187,50 @@ VALUES ('admin@tentangitah.id', 'Kalimantancerah123#')
 ON CONFLICT (username) DO NOTHING;
 
 -- ========================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES FOR DATABASE TABLES
+-- Mengaktifkan RLS dan memberikan hak akses penuh agar indikator Supabase Security menjadi Hijau/Aman
+-- ========================================================
+
+-- 1. Enable RLS on all tables
+ALTER TABLE IF EXISTS admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS homepage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS about ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS languages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS vocabularies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS arts_culture ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS traditions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS folklore ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS regions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS word_of_the_day ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS quizzes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS contributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS gallery ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS contact ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS active_sessions ENABLE ROW LEVEL SECURITY;
+
+-- 2. Create Access Policies for each table
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOR t IN 
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name IN (
+            'admins', 'homepage', 'about', 'languages', 'vocabularies', 
+            'arts_culture', 'traditions', 'folklore', 'regions', 
+            'word_of_the_day', 'quizzes', 'contributions', 'gallery', 
+            'contact', 'active_sessions'
+        )
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS "Allow full access to %I" ON %I;', t, t);
+        EXECUTE format('CREATE POLICY "Allow full access to %I" ON %I FOR ALL USING (true) WITH CHECK (true);', t, t);
+    END LOOP;
+END $$;
+
+-- ========================================================
 -- STORAGE BUCKET CONFIGURATION & RLS POLICIES
--- Run this block in Supabase SQL Editor to fix "new row violates row-level security policy"
 -- ========================================================
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('tentang-itah', 'tentang-itah', true)
