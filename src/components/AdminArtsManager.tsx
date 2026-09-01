@@ -213,8 +213,9 @@ export default function AdminArtsManager({ initialArts }: AdminArtsManagerProps)
             >
               <option value="Tari">Seni Tari</option>
               <option value="Musik">Seni Musik / Lagu</option>
-              <option value="Kriya">Seni Kriya / Ukir / Anyam</option>
-              <option value="Busana">Busana / Pakaian Adat</option>
+              <option value="Alat Musik">Alat Musik Tradisional</option>
+              <option value="Pakaian Adat">Busana / Pakaian Adat</option>
+              <option value="Kerajinan">Seni Kriya / Ukir / Anyam / Kerajinan</option>
               <option value="Kesenian Lainnya">Kesenian Lainnya</option>
             </select>
           </div>

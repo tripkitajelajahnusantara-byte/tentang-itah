@@ -16,9 +16,20 @@ export default function ArtsExplorer({ arts }: ArtsExplorerProps) {
 
   const categories = ['Semua', 'Tari', 'Musik', 'Alat Musik', 'Pakaian Adat', 'Kerajinan', 'Kesenian Lainnya'];
 
+  const getNormalizedCategory = (cat: string): string => {
+    if (!cat) return 'Kesenian Lainnya';
+    const c = cat.trim().toLowerCase();
+    if (c === 'tari' || c === 'seni tari') return 'Tari';
+    if (c === 'musik' || c === 'seni musik' || c === 'seni musik / lagu') return 'Musik';
+    if (c === 'alat musik' || c === 'alat musik tradisional') return 'Alat Musik';
+    if (c === 'busana' || c === 'pakaian adat' || c === 'busana / pakaian adat') return 'Pakaian Adat';
+    if (c === 'kriya' || c === 'kerajinan' || c === 'seni kriya' || c === 'seni kriya / ukir / anyam') return 'Kerajinan';
+    return 'Kesenian Lainnya';
+  };
+
   const filteredArts = selectedCategory === 'Semua'
     ? arts
-    : arts.filter(art => art.category === selectedCategory);
+    : arts.filter(art => getNormalizedCategory(art.category) === selectedCategory);
 
   const totalPages = Math.ceil(filteredArts.length / itemsPerPage);
   const currentArts = filteredArts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -73,7 +84,7 @@ export default function ArtsExplorer({ arts }: ArtsExplorerProps) {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center gap-2 text-3xs font-extrabold tracking-wider">
                       <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase shrink-0">
-                        {art.category}
+                        {getNormalizedCategory(art.category)}
                       </span>
                       <span className="text-muted font-medium normal-case truncate max-w-[58%] text-right text-3xs" title={art.origin_region}>
                         {art.origin_region}
@@ -189,7 +200,7 @@ export default function ArtsExplorer({ arts }: ArtsExplorerProps) {
                 <div className="flex justify-between items-end">
                   <div className="space-y-1">
                     <span className="text-4xs font-bold text-secondary uppercase tracking-widest bg-secondary/15 px-2 py-0.5 rounded border border-secondary/20">
-                      {selectedArt.category}
+                      {getNormalizedCategory(selectedArt.category)}
                     </span>
                     <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white drop-shadow-md">
                       {selectedArt.name}

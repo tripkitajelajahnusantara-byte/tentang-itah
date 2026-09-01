@@ -276,6 +276,24 @@ const initialSeedData: DatabaseSchema = {
       meaning: 'Melambangkan perlindungan fisik maupun spiritual bagi pemakainya. Secara historis digunakan sebagai baju perang yang dipercaya memiliki kekuatan magis kekebalan.',
       image_url: '/images/sangkarut.jpg',
     },
+    {
+      id: 'art-5',
+      category: 'Kerajinan',
+      name: 'Tas Anyaman Rotan (Tas Jawet)',
+      description: 'Tas Jawet adalah tas anyaman tradisional suku Dayak Kalimantan Tengah yang dibuat dari tanaman rotan pilihan yang dibelah tipis-tipis. Anyaman ini dibuat secara manual dengan teknik presisi tinggi, menghasilkan motif geometris khas Dayak seperti kelakai, burung enggang, atau tameng.',
+      origin_region: 'Kapuas & Katingan',
+      meaning: 'Melambangkan ketekunan, keterampilan hidup selaras dengan alam, serta identitas status sosial dalam masyarakat Dayak.',
+      image_url: '/images/tas-rotan-jawet.jpg',
+    },
+    {
+      id: 'art-6',
+      category: 'Kerajinan',
+      name: 'Batik Benang Bintik',
+      description: 'Batik Benang Bintik merupakan kain batik khas suku Dayak Kalimantan Tengah. Ciri khas batik ini adalah motifnya yang kental dengan simbol spiritual Dayak, terutama gambar pohon kehidupan Batang Garing, burung enggang, tameng Talawang, dan motif senjata Mandau.',
+      origin_region: 'Kota Palangka Raya',
+      meaning: 'Melambangkan hubungan harmonis antara manusia, alam semesta, dan sang pencipta (Ranying Hatalla Langit) serta perlindungan diri.',
+      image_url: '/images/batik-benang-bintik.jpg',
+    },
   ],
   traditions: [
     {
