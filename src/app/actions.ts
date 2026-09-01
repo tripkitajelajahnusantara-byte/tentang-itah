@@ -364,8 +364,9 @@ export async function verifyContributionAction(id: string, status: 'approved' | 
         audio_url: contrib.audio_url,
         region: 'Kalimantan Tengah',
       });
+      revalidatePath('/kebudayaan/cerita-rakyat');
       revalidatePath('/cerita-rakyat');
-    } else if (contrib.category === 'Seni & Budaya') {
+    } else if (contrib.category === 'Seni & Budaya' || contrib.category === 'Seni' || contrib.category === 'Budaya') {
       await db.addArtsCulture({
         category: 'Kesenian Lainnya',
         name: contrib.title,
@@ -374,8 +375,9 @@ export async function verifyContributionAction(id: string, status: 'approved' | 
         meaning: 'Kontribusi Masyarakat',
         image_url: contrib.image_url,
       });
+      revalidatePath('/kebudayaan/seni-budaya');
       revalidatePath('/seni-budaya');
-    } else if (contrib.category === 'Tradisi') {
+    } else if (contrib.category === 'Tradisi' || contrib.category === 'Tradisi Adat') {
       await db.addTradition({
         name: contrib.title,
         description: contrib.description,
@@ -384,11 +386,23 @@ export async function verifyContributionAction(id: string, status: 'approved' | 
         meaning: 'Kontribusi Masyarakat',
         image_url: contrib.image_url,
       });
+      revalidatePath('/kebudayaan/tradisi');
       revalidatePath('/tradisi');
+    } else if (contrib.category === 'Lainnya' || contrib.category === 'Informasi Budaya Lainnya') {
+      if (contrib.image_url) {
+        await db.addGallery({
+          title: contrib.title,
+          type: 'image',
+          media_url: contrib.image_url,
+          description: contrib.description,
+        });
+        revalidatePath('/galeri');
+      }
     }
   }
 
   revalidatePath('/admin/dashboard');
+  revalidatePath('/admin/dashboard/kontribusi');
   return contrib;
 }
 
